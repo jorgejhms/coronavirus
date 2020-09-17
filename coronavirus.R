@@ -5,6 +5,11 @@ library(zoo) #series de tiempo
 library(readr)
 library(tidyr)
 
+#Descarga y actualiza data
+download.file("https://cloud.minsa.gob.pe/s/Y8w3wHsEdYQSZRp/download", "data/positivos_covid.csv")
+download.file("https://cloud.minsa.gob.pe/s/Md37cjXmjT9qYSa/download", "data/fallecidos_covid.csv")
+download.file("https://cloud.minsa.gob.pe/s/nqF2irNbFomCLaa/download", "data/fallecidos_sinadef.csv")
+
 #Importación data
 positivos <- read_csv("data/positivos_covid.csv")
 fallecidos <- read_csv("data/fallecidos_covid.csv")
@@ -83,3 +88,21 @@ g_diarios <- ggplot(df_g, aes (x=fecha, y=value)) +
 
 rm(df_g) #limpiando tabla temporal
 
+df_g <- data %>% select (fecha, positivos, pos_mm7) 
+g_pos_diarios <- ggplot(df_g, aes(x = fecha, y = positivos)) +
+    geom_bar(stat="identity") +
+    geom_line(aes(y = pos_mm7, color = "red"), size = 1.5)
+dev.copy(g_pos_diarios, file ="img/g_pos_diarios.png")
+rm(df_g)
+png("g_pos_diarios.png", width = 600, height = 600)
+print(g_pos_diarios)
+dev.off()
+
+df_g <- data %>% select (fecha, fallecidos, fal_mm7) 
+g_fal_diarios <- ggplot(df_g, aes(x = fecha, y = fallecidos)) +
+  geom_bar(stat="identity") +
+  geom_line(aes(y = fal_mm7, color = "red"), size = 1.5)
+rm(df_g)
+png("g_fal_diarios.png", width = 600, height = 600)
+print(g_fal_diarios)
+dev.off()
