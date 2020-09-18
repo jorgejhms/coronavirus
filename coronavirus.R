@@ -35,6 +35,24 @@ fallecidos <- mutate(fallecidos,
                     mn = substr(FECHA_NAC, 5, 6),
                     dn = substr(FECHA_NAC, 7, 8)
                     )
+###===Funciones===###
+diarios <- function (x, k = 7) {
+  data.temp <- x %>%
+              select(fecha) %>%
+              group_by(fecha) %>%
+              summarise(count=n()) %>%
+              mutate(mm7 = rollmean(count, k, fill=NA)) #Añade media movil 7 día
+  
+  g.temp <- ggplot(data.temp, aes(x = fecha, y = count)) +
+                  geom_bar(stat="identity") +
+                  geom_line(aes(y = mm7, color = "red"), size = 1.5) +
+                  scale_color_manual(values = "red", labels = "Media móvil 7 días") +
+                  scale_x_date(date_labels = "%b", breaks = "1 month", minor_breaks = "1 week") +
+                  labs (x = "Fecha", y = "Casos", title = "Número de contagios diarios") +
+                  theme (legend.position = "bottom", legend.title = element_blank())
+  
+return(list(data.temp, g.temp))
+}
 
 #Calcular casos diarios
 data <- positivos %>%
@@ -85,29 +103,4 @@ g_diarios <- ggplot(data.temp, aes (x=fecha, y=value)) +
 
 rm(data.temp) #limpiando tabla temporal
 
-#Gráfico casos positivos diario
-data.temp <- data %>% 
-            select (fecha, positivos, pos_mm7) 
-
-g_pos_diarios <- ggplot(data.temp, aes(x = fecha, y = positivos)) +
-                geom_bar(stat="identity") +
-                geom_line(aes(y = pos_mm7, color = "red"), size = 1.5) +
-                scale_color_manual(values = "red", labels = "Media móvil 7 días") +
-                scale_x_date(date_labels = "%b", breaks = "1 month", minor_breaks = "1 week") +
-                labs (x = "Fecha", y = "Casos", title = "Número de contagios diarios") +
-                theme (legend.position = "bottom", legend.title = element_blank())
-rm(data.temp)
-
-#Gráfico fallecidos diarios
-data.temp <- data %>% 
-            select (fecha, fallecidos, fal_mm7) 
-
-g_fal_diarios <- ggplot(data.temp, aes(x = fecha, y = fallecidos)) +
-                geom_bar(stat="identity") +
-                geom_line(aes(y = fal_mm7, color = "red"), size = 1.5) +
-                scale_color_manual(values ="red", labels = "Media móvil 7 días") +
-                scale_x_date(date_labels = "%b", breaks = "1 month", minor_breaks = "1 week") +
-                labs (x = "Fecha", y = "Casos", title = "Número de fallecidos diarios") +
-                theme(legend.position = "bottom", legend.title = element_blank())
-rm(data.temp)
 
