@@ -5,4 +5,4 @@ Proyecto personal de jorgejhms. El objetivo de este proyecto es repasar mis cono
 
 Las bases de datas usadas son proporciandas por los [datos abiertos del MINSA](https://www.minsa.gob.pe/datosabiertos/).
 
-Mucho del manejo de R lo estoy sacando de los proyectos hechos por [jincio](https://github.com/jincio)
+Mucho del manejo de R lo estoy sacando de los proyectos hechos por [jincio](https://github.com/jincio).

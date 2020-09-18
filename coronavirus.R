@@ -41,26 +41,24 @@ data <- positivos %>%
         select(fecha) %>%
         group_by(fecha) %>%
         summarise(positivos=n()) %>%
-        mutate(pos_mm7 = rollmean(positivos, k = 7, fill=NA))
-
-data <-mutate(data, pos_mm7 = rollmean(positivos, k = 7, fill=NA)) #Añadiendo media movil 7 días
+        mutate(pos_mm7 = rollmean(positivos, k = 7, fill=NA)) #Añade media movil 7 día
 
 #Calculo fallecidos diarios
 fallecidos_diarios <- fallecidos %>%
                       select(fecha) %>%
                       group_by(fecha) %>%
-                      summarise(fallecidos=n())
-
-fallecidos_diarios <- mutate(fallecidos_diarios, fal_mm7 = rollmean(fallecidos, k = 7, fill=NA)) #Añadiendo media movil 7 días
+                      summarise(fallecidos=n()) %>%
+                      mutate(fal_mm7 = rollmean(fallecidos, k = 7, fill=NA)) 
 
 data <- full_join(data, fallecidos_diarios, by = "fecha")
 rm(fallecidos_diarios) #limpiando entorno
 
 #Calculando recuperados diarios
-recuperados_diarios <- reportes_minsa %>% select(Dia, Recuperados)
-recuperados_diarios <- mutate(recuperados_diarios, Dia = as.Date( Dia, format="%Y-%m-%d"))
+recuperados_diarios <- reportes_minsa %>% select(Dia, Recuperados) %>%
+                        mutate(Dia = as.Date( Dia, format="%Y-%m-%d")) %>%
+                        mutate(rec_mm7 = rollmean(Recuperados, k = 7, fill=NA))
+  
 colnames(recuperados_diarios)[colnames(recuperados_diarios) == "Dia"] <- "fecha"
-recuperados_diarios <- mutate(recuperados_diarios, rec_mm7 = rollmean(Recuperados, k = 7, fill=NA))
 
 data <-full_join(data, recuperados_diarios, by="fecha")
 
@@ -72,32 +70,44 @@ data[,"fallecidos_cum"] <- cumsum(replace_na(data$fallecidos, 0))
 
 ###===Gráficos===###
 
-data.temp <- data %>% select(fecha, positivos_cum, fallecidos_cum, Recuperados) %>% gather(key="variable", value="value", -fecha)
+#Gráfico general
+data.temp <- data %>%
+            select(fecha, positivos_cum, fallecidos_cum, Recuperados) %>% 
+            gather(key="variable", value="value", -fecha)
 
 g_diarios <- ggplot(data.temp, aes (x=fecha, y=value)) +
-    geom_line(aes(color = variable)) +
-    scale_color_manual(values = c ("darkred", "darkblue", "darkgreen")) +
-    theme(legend.position = "bottom") +
-    scale_y_log10() +
-    ggtitle("Coronavirus en Perú") + ylab ("Número de casos") + xlab("Fecha")
+            geom_line(aes(color = variable)) +
+            scale_color_manual(values = c ("darkred", "darkblue", "darkgreen"), labels = c("Fallecidos", "Positivos", "Recuperados")) +
+            theme(legend.position = "bottom", legend.title = element_blank()) +
+            scale_y_log10() +
+            scale_x_date(date_labels = "%b", breaks = "1 month", minor_breaks = "1 week") +
+            labs(x = "Fecha", y = "Número de casos", title = "Coronavirus en Perú")
 
 rm(data.temp) #limpiando tabla temporal
 
-data.temp <- data %>% select (fecha, positivos, pos_mm7) 
-g_pos_diarios <- ggplot(data.temp, aes(x = fecha, y = positivos)) +
-    geom_bar(stat="identity") +
-    geom_line(aes(y = pos_mm7, color = "red"), size = 1.5)
-dev.copy(g_pos_diarios, file ="img/g_pos_diarios.png")
-rm(df_g)
-png("g_pos_diarios.png", width = 600, height = 600)
-print(g_pos_diarios)
-dev.off()
+#Gráfico casos positivos diario
+data.temp <- data %>% 
+            select (fecha, positivos, pos_mm7) 
 
-data.temp <- data %>% select (fecha, fallecidos, fal_mm7) 
-g_fal_diarios <- ggplot(data.temp, aes(x = fecha, y = fallecidos)) +
-  geom_bar(stat="identity") +
-  geom_line(aes(y = fal_mm7, color = "red"), size = 1.5)
+g_pos_diarios <- ggplot(data.temp, aes(x = fecha, y = positivos)) +
+                geom_bar(stat="identity") +
+                geom_line(aes(y = pos_mm7, color = "red"), size = 1.5) +
+                scale_color_manual(values = "red", labels = "Media móvil 7 días") +
+                scale_x_date(date_labels = "%b", breaks = "1 month", minor_breaks = "1 week") +
+                labs (x = "Fecha", y = "Casos", title = "Número de contagios diarios") +
+                theme (legend.position = "bottom", legend.title = element_blank())
 rm(data.temp)
-png("g_fal_diarios.png", width = 600, height = 600)
-print(g_fal_diarios)
-dev.off()
+
+#Gráfico fallecidos diarios
+data.temp <- data %>% 
+            select (fecha, fallecidos, fal_mm7) 
+
+g_fal_diarios <- ggplot(data.temp, aes(x = fecha, y = fallecidos)) +
+                geom_bar(stat="identity") +
+                geom_line(aes(y = fal_mm7, color = "red"), size = 1.5) +
+                scale_color_manual(values ="red", labels = "Media móvil 7 días") +
+                scale_x_date(date_labels = "%b", breaks = "1 month", minor_breaks = "1 week") +
+                labs (x = "Fecha", y = "Casos", title = "Número de fallecidos diarios") +
+                theme(legend.position = "bottom", legend.title = element_blank())
+rm(data.temp)
+
