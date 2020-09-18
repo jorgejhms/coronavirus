@@ -4,11 +4,13 @@ library(dplyr) #manipulación de data
 library(zoo) #series de tiempo
 library(readr)
 library(tidyr)
+library(RcppRoll)
 
 ###===Descarga y actualiza data===###
 download.file("https://cloud.minsa.gob.pe/s/Y8w3wHsEdYQSZRp/download", "data/positivos_covid.csv")
 download.file("https://cloud.minsa.gob.pe/s/Md37cjXmjT9qYSa/download", "data/fallecidos_covid.csv")
 download.file("https://cloud.minsa.gob.pe/s/nqF2irNbFomCLaa/download", "data/fallecidos_sinadef.csv")
+download.file("https://covid.ourworldindata.org/data/owid-covid-data.csv", "data/owid-covid-data.csv")
 
 ###===Importación data===###
 positivos <- read_csv("data/positivos_covid.csv")
@@ -54,22 +56,21 @@ diarios <- function (x, k = 7) {
 return(list(data.temp, g.temp))
 }
 
-#Calcular casos diarios
-data <- positivos %>%
-        select(fecha) %>%
-        group_by(fecha) %>%
-        summarise(positivos=n()) %>%
-        mutate(pos_mm7 = rollmean(positivos, k = 7, fill=NA)) #Añade media movil 7 día
-
-#Calculo fallecidos diarios
-fallecidos_diarios <- fallecidos %>%
-                      select(fecha) %>%
-                      group_by(fecha) %>%
-                      summarise(fallecidos=n()) %>%
-                      mutate(fal_mm7 = rollmean(fallecidos, k = 7, fill=NA)) 
-
-data <- full_join(data, fallecidos_diarios, by = "fecha")
-rm(fallecidos_diarios) #limpiando entorno
+covid.trend <- function () { #esta funcion crea un gráfico inspirado en esta web https://aatishb.com/covidtrends/
+  data.temp <- positivos %>%
+              select(fecha) %>%
+              group_by(fecha) %>%
+              summarise(count=n()) %>%
+              mutate(sum_sem = roll_sum (count, 7, fill = NA, align = "right")) #Suma los casos de la semana previa, requiere RcppRoll
+  
+  g.temp <- ggplot(data.temp, aes( x = count, y = sum_sem)) +
+            geom_line() +
+            scale_x_log10() +
+            scale_y_log10() +
+            labs (x = "Número de casos", y = "Casos de la semana anterior", title = "Tendencia de Coronavirus")
+  
+  return(list(data.temp, g.temp))
+}
 
 #Calculando recuperados diarios
 recuperados_diarios <- reportes_minsa %>% select(Dia, Recuperados) %>%
