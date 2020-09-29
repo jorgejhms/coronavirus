@@ -11,7 +11,7 @@ diarios <- function (x, k = 7) {
     geom_line(aes(y = mm7, color = "red"), size = 1.5) +
     scale_color_manual(values = "red", labels = "Media móvil 7 días") +
     scale_x_date(date_labels = "%b", breaks = "1 month", minor_breaks = "1 week") +
-    labs (x = "Fecha", y = "Casos", title = "Número de contagios diarios") +
+    labs (x = "Fecha", y = "Casos") +
     theme (legend.position = "bottom", legend.title = element_blank())
   
   return(list(tail(data.temp), g.temp))

@@ -51,8 +51,18 @@ data <-full_join(data, recuperados_diarios, by="fecha")
 rm (recuperados_diarios)
 
 #Generando acumulados
-data[,"positivos_cum"] <- cumsum(data$positivos)
-data[,"fallecidos_cum"] <- cumsum(replace_na(data$fallecidos, 0))
+positivos_cum <- positivos %>%
+  select(fecha) %>%
+  group_by(fecha) %>%
+  summarise(count=n())
+
+fallecidos_cum <- fallecidos %>%
+  select(fecha) %>%
+  group_by(fecha) %>%
+  summarise(count=n())
+
+positivos_cum[,"positivos_cum"] <- cumsum(positivos_cum$count)
+fallecidos_cum[,"fallecidos_cum"] <- cumsum(replace_na(fallecidos_cum$count, 0))
 
 ###===Gráficos===###
 
