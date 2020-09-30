@@ -1,4 +1,11 @@
 ###===Funciones===###
+descargar.datos <- function () {
+  download.file("https://cloud.minsa.gob.pe/s/Y8w3wHsEdYQSZRp/download", "data/positivos_covid.csv")
+  download.file("https://cloud.minsa.gob.pe/s/Md37cjXmjT9qYSa/download", "data/fallecidos_covid.csv")
+  download.file("https://cloud.minsa.gob.pe/s/nqF2irNbFomCLaa/download", "data/fallecidos_sinadef.csv")
+  download.file("https://covid.ourworldindata.org/data/owid-covid-data.csv", "data/owid-covid-data.csv")
+}
+
 diarios <- function (x, k = 7) {
   data.temp <- x %>%
     select(fecha) %>%
