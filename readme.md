@@ -11,7 +11,7 @@ Objetivos:
 -----------
 [x] Gráficos de casos y fallecidos diarios en ggplot2.
 [x] Grafico de tendencias usando ggplot2 (inspirado en covid-trends de...)
-[ ] Gráfico análisis de fallecidos en SINADEF.
+[x] Gráfico análisis de fallecidos en SINADEF.
 [ ] Creación de un función que permita filtrar con facilidad por regiones, provincias y distritos.
 [ ] Análisis de la data de OurWorld
 [ ] Creación de un cuadro de seguimiento de países seleccionados.

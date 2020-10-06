@@ -11,7 +11,7 @@ source("funciones.R")
 ###===Importación data===###
 positivos <- read_csv("data/positivos_covid.csv")
 fallecidos <- read_csv("data/fallecidos_covid.csv")
-fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1") #cambio a read.csv para aplicar separador
+fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
 reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8") 
 
 ###===Limpieza de Data===####
@@ -49,15 +49,14 @@ rm (recuperados_diarios)
 positivos_cum <- positivos %>%
   select(fecha) %>%
   group_by(fecha) %>%
-  summarise(count=n())
+  summarise(count=n()) %>%
+  mutate(positivos_cum = cumsum(replace_na(count, 0)))
 
 fallecidos_cum <- fallecidos %>%
   select(fecha) %>%
   group_by(fecha) %>%
-  summarise(count=n())
-
-positivos_cum[,"positivos_cum"] <- cumsum(positivos_cum$count)
-fallecidos_cum[,"fallecidos_cum"] <- cumsum(replace_na(fallecidos_cum$count, 0))
+  summarise(count=n()) %>%
+  mutate(fallecidos_cum = cumsum(replace_na(count, 0)))
 
 ###===Gráficos===###
 

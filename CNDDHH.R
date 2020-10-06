@@ -1,0 +1,146 @@
+# CNDDHH
+# ======
+
+## Paquetes
+## --------
+library(ggplot2) #graficos
+library(dplyr) #manipulación de data 
+library(zoo) #series de tiempo
+library(readr)
+library(tidyr)
+library(RcppRoll)
+
+source("funciones.R") #carga funciones de R
+
+## Importación data
+## ----------------
+positivos <- read_csv("data/positivos_covid.csv")
+fallecidos <- read_csv("data/fallecidos_covid.csv")
+fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
+reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8") 
+
+## Limpieza de Data
+## ----------------
+positivos <- mutate(positivos, 
+                    y = substr(FECHA_RESULTADO, 1, 4),
+                    m = substr(FECHA_RESULTADO,5,6),
+                    d = substr(FECHA_RESULTADO,7,8),
+                    fecha=as.Date(paste0(y,"-",m,"-",d)),
+                    EDAD_n = as.numeric(EDAD),
+)
+
+fallecidos <- mutate(fallecidos, 
+                     y = substr(FECHA_FALLECIMIENTO, 1, 4),
+                     m = substr(FECHA_FALLECIMIENTO,5,6),
+                     d = substr(FECHA_FALLECIMIENTO,7,8),
+                     fecha=as.Date(paste0(y,"-",m,"-",d)),
+                     edad_declarada = as.numeric(EDAD_DECLARADA),
+                     yn = substr(FECHA_NAC, 1, 4),
+                     mn = substr(FECHA_NAC, 5, 6),
+                     dn = substr(FECHA_NAC, 7, 8))
+                     
+fallecidos_sinadef <- mutate(fallecidos_sinadef,
+                          fecha = as.Date(fallecidos_sinadef$FECHA),
+                          año = substr(fecha, 1, 4))
+
+
+## Filtrado de data
+## ----------------
+
+### Filtro hasta 30 de septiembre, corte del reporte.
+
+positivos <-filter(positivos, fecha <= "2020-09-30" )
+fallecidos <-filter(fallecidos, fecha <= "2020-09-30" )
+
+### Filtro data SINADEF, excluye extranjeros y muertes violentas
+fallecidos_sinadef_2020 <- filter(fallecidos_sinadef,
+                     `DEPARTAMENTO.DOMICILIO` != "EXTRANJERO",
+                     `MUERTE.VIOLENTA` %in% c("SIN REGISTRO","NO SE CONOCE"),
+                      fecha >= "2020-01-01" & fecha <= "2020-09-30")
+
+fallecidos_sinadef_2019 <- filter(fallecidos_sinadef,
+                                  `DEPARTAMENTO.DOMICILIO` != "EXTRANJERO",
+                                  `MUERTE.VIOLENTA` %in% c("SIN REGISTRO","NO SE CONOCE"),
+                                  fecha >= "2019-01-01" & fecha <= "2019-12-31")
+
+fallecidos_sinadef_2018 <- filter(fallecidos_sinadef,
+                                  `DEPARTAMENTO.DOMICILIO` != "EXTRANJERO",
+                                  `MUERTE.VIOLENTA` %in% c("SIN REGISTRO","NO SE CONOCE"),
+                                  fecha >= "2018-01-01" & fecha <= "2018-12-31")
+
+fallecidos_sinadef_2017 <- filter(fallecidos_sinadef,
+                                  `DEPARTAMENTO.DOMICILIO` != "EXTRANJERO",
+                                  `MUERTE.VIOLENTA` %in% c("SIN REGISTRO","NO SE CONOCE"),
+                                  fecha >= "2017-01-01" & fecha <= "2017-12-31")
+
+## Generando acumulados:
+## ---------------------
+positivos_cum <- positivos %>%
+  select(fecha) %>%
+  group_by(fecha) %>%
+  summarise(count=n()) %>%
+  mutate(positivos_cum = cumsum(replace_na(count, 0))) 
+
+fallecidos_cum <- fallecidos %>%
+  select(fecha) %>%
+  group_by(fecha) %>%
+  summarise(count=n()) %>%
+  mutate(fallecidos_cum = cumsum(replace_na(count, 0)))
+
+## Tablas:
+## -------
+
+### Tabla general
+
+tabla_general <- positivos_cum %>%
+    tail(n=1) %>%
+    full_join(tail(fallecidos_cum, n=1), by="fecha") %>%
+    select(fecha,positivos_cum, fallecidos_cum) %>%
+    rename(Contagios = positivos_cum) %>%
+    rename(Fallecidos = fallecidos_cum)
+
+### Tabla por regiones
+
+tabla_regiones <- positivos %>%
+  select(DEPARTAMENTO) %>%
+  group_by(DEPARTAMENTO) %>%
+  summarise(count=n()) %>%
+  mutate(positivos_pct = prop.table(count)*100) %>%
+  rename(Contagios = count)
+
+fallecidos_regiones <- fallecidos %>%
+  select(DEPARTAMENTO) %>%
+  group_by(DEPARTAMENTO) %>%
+  summarise(count=n()) %>%
+  mutate(fallecidos_pct = prop.table(count)*100) %>%
+  rename(Fallecidos = count)
+
+tabla_regiones <-full_join(tabla_regiones, fallecidos_regiones, by="DEPARTAMENTO")
+
+
+## Gráficos:
+## ---------
+
+### SINADEF
+
+data.temp <- fallecidos_sinadef %>%
+  group_by(fecha) %>%
+  summarise(count=n()) %>%
+  mutate(año = substr(fecha, 1, 4),
+         mes = substr(fecha, 6, 7),
+         date = as.Date(format(fecha, "1990-%m-%d")),
+         ) 
+
+g.sinadef <- ggplot(data.temp, aes(x = date, y = count, colour = año)) +
+  geom_line(size = 0.8) +
+  scale_x_date(date_labels = "%b", breaks = "1 month", minor_breaks = "1 week") +
+  scale_color_manual(values = c (rep("darkgray", 3), "red")) +
+  labs (x = "Fecha", y = "Casos") +
+  theme (legend.position = "bottom", legend.title = element_blank())
+
+### Contagios por region
+
+g.contagios.region <- tabla_regiones %>%
+  ggplot(aes(y = reorder(DEPARTAMENTO, Contagios), x = Contagios)) + 
+  geom_col(fill = "darkblue")
+  
