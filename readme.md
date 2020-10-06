@@ -9,6 +9,7 @@ Mucho del manejo de R lo estoy sacando de los proyectos hechos por [jincio](http
 
 Objetivos:
 -----------
+
 [x] Gráficos de casos y fallecidos diarios en ggplot2.
 [x] Grafico de tendencias usando ggplot2 (inspirado en covid-trends de...)
 [x] Gráfico análisis de fallecidos en SINADEF.
