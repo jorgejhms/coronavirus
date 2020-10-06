@@ -17,7 +17,8 @@ source("funciones.R") #carga funciones de R
 positivos <- read_csv("data/positivos_covid.csv")
 fallecidos <- read_csv("data/fallecidos_covid.csv")
 fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
-reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8") 
+reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8")
+contagios_indigenas <- read.csv("data/2020-10-01.dge_indígenas_distritos.csv")
 
 ## Limpieza de Data
 ## ----------------
@@ -116,6 +117,12 @@ fallecidos_regiones <- fallecidos %>%
   rename(Fallecidos = count)
 
 tabla_regiones <-full_join(tabla_regiones, fallecidos_regiones, by="DEPARTAMENTO")
+
+tabla_indígenas <- contagios_indigenas %>%
+  group_by(Departamento) %>%
+  summarise(Contagios = sum(Confirmados)) %>%
+  mutate(contagios_pct = prop.table(Contagios)*100) %>%
+  arrange(desc(Contagios))
 
 
 ## Gráficos:
