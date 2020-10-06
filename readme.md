@@ -10,12 +10,12 @@ Mucho del manejo de R lo estoy sacando de los proyectos hechos por [jincio](http
 Objetivos:
 -----------
 
-[x] Gráficos de casos y fallecidos diarios en ggplot2.
-[x] Grafico de tendencias usando ggplot2 (inspirado en covid-trends de...)
-[x] Gráfico análisis de fallecidos en SINADEF.
-[ ] Creación de un función que permita filtrar con facilidad por regiones, provincias y distritos.
-[ ] Análisis de la data de OurWorld
-[ ] Creación de un cuadro de seguimiento de países seleccionados.
-[ ] Creación de un dashboard usando Rmarkdown.
-[ ] Publicación de dashborad en la web.
-[ ] Creación de un dashboard interactivo usando RShinny (de ser posible)
+- [x] Gráficos de casos y fallecidos diarios en ggplot2.
+- [x] Grafico de tendencias usando ggplot2 (inspirado en covid-trends de...)
+- [x] Gráfico análisis de fallecidos en SINADEF.
+- [ ] Creación de un función que permita filtrar con facilidad por regiones, provincias y distritos.
+- [ ] Análisis de la data de OurWorld
+- [ ] Creación de un cuadro de seguimiento de países seleccionados.
+- [ ] Creación de un dashboard usando Rmarkdown.
+- [ ] Publicación de dashborad en la web.
+- [ ] Creación de un dashboard interactivo usando RShinny (de ser posible)
