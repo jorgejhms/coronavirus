@@ -9,6 +9,7 @@ library(zoo) #series de tiempo
 library(readr)
 library(tidyr)
 library(RcppRoll)
+library("viridis") # paleta de colores
 
 source("funciones.R") #carga funciones de R
 
@@ -19,6 +20,7 @@ fallecidos <- read_csv("data/fallecidos_covid.csv")
 fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
 reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8")
 contagios_indigenas <- read.csv("data/2020-10-01.dge_indígenas_distritos.csv")
+contagios_indigenas_pueblos <- read.csv("data/2020-10-01.confirmados_por_pueblo_indigena.csv", sep="\t")
 
 ## Limpieza de Data
 ## ----------------
@@ -118,12 +120,22 @@ fallecidos_regiones <- fallecidos %>%
 
 tabla_regiones <-full_join(tabla_regiones, fallecidos_regiones, by="DEPARTAMENTO")
 
+### Tabla contagios indígenas por departamento
 tabla_indígenas <- contagios_indigenas %>%
   group_by(Departamento) %>%
   summarise(Contagios = sum(Confirmados)) %>%
-  mutate(contagios_pct = prop.table(Contagios)*100) %>%
-  arrange(desc(Contagios))
+  mutate(contagios_pct = prop.table(Contagios)*100)
 
+### Tabla contagios indígenas por pueblos indígenas (agrupando otros)
+
+tabla_indigenas_pueblos <- contagios_indigenas_pueblos %>%
+  group_by(Pueblo) %>%
+  summarise(Contagios = sum(Confirmados)) %>%
+  add_row(Pueblo = "Otros",
+          Contagios = filter(. , Contagios <=200) %>% pull(Contagios) %>% sum()) %>%
+  mutate(contagios_pct = prop.table(Contagios)*100) %>%
+  filter (contagios_pct>1)
+  
 
 ## Gráficos:
 ## ---------
@@ -147,7 +159,33 @@ g.sinadef <- ggplot(data.temp, aes(x = date, y = count, colour = año)) +
 
 ### Contagios por region
 
+g.region <- tabla_regiones %>%
+  select(DEPARTAMENTO, Contagios, Fallecidos) %>% 
+  gather(key="Tipo", value="casos", -DEPARTAMENTO) %>%
+  ggplot(aes(x = casos, y = reorder(DEPARTAMENTO, casos), fill = Tipo)) +
+  geom_col(position=position_dodge()) +
+  scale_x_log10() +
+  scale_fill_manual(values = c ("#00BFC4", "#F8766D"))
+
 g.contagios.region <- tabla_regiones %>%
-  ggplot(aes(y = reorder(DEPARTAMENTO, Contagios), x = Contagios)) + 
-  geom_col(fill = "darkblue")
-  
+  ggplot(aes(y = reorder(DEPARTAMENTO, Contagios), x = Contagios, label = Contagios, fill = DEPARTAMENTO)) + 
+  geom_col() +
+  scale_x_log10() +
+  geom_label(size = 3, fill ="white") +
+  theme(legend.position="none") +
+  scale_fill_viridis(discrete = TRUE, option = "A")
+
+
+g.contagios.indigenas <- tabla_indígenas %>%
+  ggplot(aes(y = reorder(Departamento, Contagios), x = Contagios, fill = Departamento)) + 
+  geom_col() +
+  geom_label(aes(label = round(contagios_pct, 2)), fill = "white") +
+  labs(x = element_blank(), y = element_blank(), title = element_blank()) +
+  theme(legend.position="none")
+
+g.contagios.pueblos <- tabla_indigenas_pueblos %>%
+  ggplot(aes(y = reorder(Pueblo, Contagios), x = Contagios, fill = Pueblo)) +
+  geom_col() +
+  geom_label(aes(label = Contagios), fill = "white") +
+  labs (x = element_blank(), y = element_blank(), title = element_blank()) +
+  theme(legend.position="none")
