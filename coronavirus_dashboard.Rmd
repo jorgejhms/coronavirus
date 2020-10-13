@@ -9,6 +9,8 @@ output:
   flexdashboard::flex_dashboard:
     orientation: rows
     vertical_layout: scroll
+    source_code: "https://github.com/jorgejhms/coronavirus"
+    social: ["menu"]
 ---
 
 ```{r setup, include=FALSE}
