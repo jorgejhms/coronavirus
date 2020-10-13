@@ -21,7 +21,7 @@ diarios <- function (x, k = 7) {
     labs (x = "Fecha", y = "Casos") +
     theme (legend.position = "bottom", legend.title = element_blank())
   
-  return(list(tail(data.temp), g.temp))
+  return(g.temp)
 }
 
 covid.trend <- function () { #esta funcion crea un gráfico inspirado en esta web https://aatishb.com/covidtrends/

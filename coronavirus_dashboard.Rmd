@@ -1,0 +1,115 @@
+---
+title: "Coronavirus en el Perú"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: scroll
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2) #graficos
+library(dplyr) #manipulación de data 
+library(zoo) #series de tiempo
+library(readr)
+library(tidyr)
+library(RcppRoll)
+library("viridis") # paleta de colores
+library(lubridate) #manejo de fechas
+
+source("funciones.R") #carga funciones de R
+
+## Importación data
+## ----------------
+positivos <- read.csv("data/positivos_covid.csv")
+fallecidos <- read.csv("data/fallecidos_covid.csv")
+fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
+reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8")
+contagios_indigenas <- read.csv("data/2020-10-01.dge_indígenas_distritos.csv")
+contagios_indigenas_pueblos <- read.csv("data/2020-10-01.confirmados_por_pueblo_indigena.csv", sep="\t")
+
+## Limpieza de Data
+## ----------------
+positivos <- mutate(positivos, 
+                    y = substr(FECHA_RESULTADO, 1, 4),
+                    m = substr(FECHA_RESULTADO,5,6),
+                    d = substr(FECHA_RESULTADO,7,8),
+                    fecha=as.Date(paste0(y,"-",m,"-",d)),
+                    EDAD_n = as.numeric(EDAD),
+)
+
+fallecidos <- mutate(fallecidos, 
+                     y = substr(FECHA_FALLECIMIENTO, 1, 4),
+                     m = substr(FECHA_FALLECIMIENTO,5,6),
+                     d = substr(FECHA_FALLECIMIENTO,7,8),
+                     fecha=as.Date(paste0(y,"-",m,"-",d)),
+                     edad_declarada = as.numeric(EDAD_DECLARADA),
+                     yn = substr(FECHA_NAC, 1, 4),
+                     mn = substr(FECHA_NAC, 5, 6),
+                     dn = substr(FECHA_NAC, 7, 8))
+                     
+fallecidos_sinadef <- mutate(fallecidos_sinadef,
+                          fecha = as.Date(fallecidos_sinadef$FECHA),
+                          año = substr(fecha, 1, 4))
+
+fallecidos_sinadef <- filter(fallecidos_sinadef,
+                     `DEPARTAMENTO.DOMICILIO` != "EXTRANJERO",
+                     `MUERTE.VIOLENTA` %in% c("SIN REGISTRO","NO SE CONOCE"))
+
+
+## Generando acumulados:
+## ---------------------
+positivos_cum <- positivos %>%
+  select(fecha) %>%
+  group_by(fecha) %>%
+  summarise(count=n()) %>%
+  mutate(positivos_cum = cumsum(replace_na(count, 0))) 
+
+fallecidos_cum <- fallecidos %>%
+  select(fecha) %>%
+  group_by(fecha) %>%
+  summarise(count=n()) %>%
+  mutate(fallecidos_cum = cumsum(replace_na(count, 0)))
+
+```
+
+Cabecera
+--------
+
+### Personas contagiadas
+```{r}
+positivos_cum <- positivos %>%
+  summarise(count=n()) %>%
+  pull()
+  
+valueBox(positivos_cum, icon = "fa-user")
+```
+
+### Personas fallecidas
+```{r}
+fallecidos_cum <- fallecidos %>%
+  summarise(count=n()) %>%
+  pull()
+  
+valueBox(fallecidos_cum, color = "danger", icon = "fa-cross")
+```
+
+### Última actualización
+```{r}
+fecha_actualizacion <- max(date(positivos$fecha))
+valueBox(fecha_actualizacion)
+```
+
+Evolución de la pandemia
+------------------------
+
+### Evolución de positivos
+```{r}
+diarios(positivos)
+```
+
+### Evolución de fallecidos
+```{r}
+diarios(fallecidos)
+```
+

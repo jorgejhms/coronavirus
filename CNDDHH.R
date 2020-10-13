@@ -170,11 +170,21 @@ g.region <- tabla_regiones %>%
 g.contagios.region <- tabla_regiones %>%
   ggplot(aes(y = reorder(DEPARTAMENTO, Contagios), x = Contagios, label = Contagios, fill = DEPARTAMENTO)) + 
   geom_col() +
-  scale_x_log10() +
+  scale_x_log10(labels = function(DEPARTAMENTO) format(DEPARTAMENTO, scientific = FALSE)) +
   geom_label(size = 3, fill ="white") +
   theme(legend.position="none") +
-  scale_fill_viridis(discrete = TRUE, option = "A")
-
+  scale_fill_viridis(discrete = TRUE) +
+  labs (x = element_blank(), y = element_blank(), title = element_blank())
+  
+g.fallecidos.region <- tabla_regiones %>%
+  filter(DEPARTAMENTO != "LIMA REGION") %>%
+  ggplot(aes(y = reorder(DEPARTAMENTO, Fallecidos), x = Fallecidos, label = Fallecidos, fill = DEPARTAMENTO)) + 
+  geom_col() +
+  scale_x_log10(labels = function(DEPARTAMENTO) format(DEPARTAMENTO, scientific = FALSE)) +
+  geom_label(size = 3, fill ="white") +
+  theme(legend.position="none") +
+  scale_fill_viridis(discrete = TRUE, option = "B") +
+  labs (x = element_blank(), y = element_blank(), title = element_blank())
 
 g.contagios.indigenas <- tabla_indígenas %>%
   ggplot(aes(y = reorder(Departamento, Contagios), x = Contagios, fill = Departamento)) + 
