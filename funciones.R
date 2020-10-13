@@ -19,7 +19,8 @@ diarios <- function (x, k = 7) {
     scale_color_manual(values = "red", labels = "Media móvil 7 días") +
     scale_x_date(date_labels = "%b", breaks = "1 month", minor_breaks = "1 week") +
     labs (x = "Fecha", y = "Casos") +
-    theme (legend.position = "bottom", legend.title = element_blank())
+    theme (legend.position = "bottom", legend.title = element_blank()) +
+    labs(x = element_blank(), y = element_blank(), title = element_blank())
   
   return(g.temp)
 }

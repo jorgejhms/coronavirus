@@ -21,6 +21,7 @@ library(tidyr)
 library(RcppRoll)
 library("viridis") # paleta de colores
 library(lubridate) #manejo de fechas
+library(DT)
 
 source("funciones.R") #carga funciones de R
 
@@ -81,6 +82,10 @@ fallecidos_cum <- fallecidos %>%
 Cabecera
 --------
 
+### Presentación
+
+Dashboard con la última información de los datos abiertos del MINSA.
+
 ### Personas contagiadas
 ```{r}
 positivos_cum <- positivos %>%
@@ -96,7 +101,7 @@ fallecidos_cum <- fallecidos %>%
   summarise(count=n()) %>%
   pull()
   
-valueBox(fallecidos_cum, color = "danger", icon = "fa-cross")
+valueBox(fallecidos_cum, icon = "fa-cross", color = "danger")
 ```
 
 ### Última actualización
@@ -118,3 +123,35 @@ diarios(positivos)
 diarios(fallecidos)
 ```
 
+Tabla regiones
+--------------
+
+```{r}
+tabla_regiones <- positivos %>%
+  select(DEPARTAMENTO) %>%
+  group_by(DEPARTAMENTO) %>%
+  summarise(count=n()) %>%
+  mutate(positivos_pct = round(prop.table(count)*100, 2)) %>%
+  rename(Contagios = count)
+
+fallecidos_regiones <- fallecidos %>%
+  select(DEPARTAMENTO) %>%
+  group_by(DEPARTAMENTO) %>%
+  summarise(count=n()) %>%
+  mutate(fallecidos_pct = round(prop.table(count)*100, 2)) %>%
+  rename(Fallecidos = count)
+
+tabla_regiones <-full_join(tabla_regiones, fallecidos_regiones, by="DEPARTAMENTO")
+
+datatable(tabla_regiones, 
+          class = 'cell-border stripe',
+          colnames = c('Departamento', 'Contagios', '%', 'Fallecidos', '%'),
+          options = list(pageLength = 26)
+          )
+```
+
+
+Créditos
+--------
+
+Fuente: [Datos abiertos del MINSA](https://www.minsa.gob.pe/datosabiertos/).
