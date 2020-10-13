@@ -16,6 +16,6 @@ Objetivos:
 - [ ] Creación de un función que permita filtrar con facilidad por regiones, provincias y distritos.
 - [ ] Análisis de la data de OurWorld
 - [ ] Creación de un cuadro de seguimiento de países seleccionados.
-- [ ] Creación de un dashboard usando Rmarkdown.
-- [ ] Publicación de dashborad en la web.
+- [x] Creación de un dashboard usando Rmarkdown.
+- [x] Publicación de dashborad en la web.
 - [ ] Creación de un dashboard interactivo usando RShinny (de ser posible)
