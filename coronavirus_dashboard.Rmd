@@ -27,14 +27,11 @@ library(DT)
 
 source("funciones.R") #carga funciones de R
 
-## Importación data
-## ----------------
 positivos <- read.csv("data/positivos_covid.csv")
 fallecidos <- read.csv("data/fallecidos_covid.csv")
 fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
 reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8")
-contagios_indigenas <- read.csv("data/2020-10-01.dge_indígenas_distritos.csv")
-contagios_indigenas_pueblos <- read.csv("data/2020-10-01.confirmados_por_pueblo_indigena.csv", sep="\t")
+
 
 ## Limpieza de Data
 ## ----------------
@@ -88,28 +85,41 @@ Cabecera
 
 Dashboard con la última información de los datos abiertos del MINSA.
 
-### Personas contagiadas
-```{r}
-positivos_cum <- positivos %>%
-  summarise(count=n()) %>%
-  pull()
-  
-valueBox(positivos_cum, icon = "fa-user")
-```
-
-### Personas fallecidas
-```{r}
-fallecidos_cum <- fallecidos %>%
-  summarise(count=n()) %>%
-  pull()
-  
-valueBox(fallecidos_cum, icon = "fa-cross", color = "danger")
-```
-
 ### Última actualización
 ```{r}
 fecha_actualizacion <- max(date(positivos$fecha))
 valueBox(fecha_actualizacion)
+```
+
+Contagios
+---------
+
+### Personas contagiadas
+```{r}
+positivos %>%
+  summarise(count=n()) %>%
+  pull() %>%
+  valueBox(icon = "fa-user", color = "warning")
+```
+
+### Personas fallecidas
+```{r}
+fallecidos %>%
+  summarise(count=n()) %>%
+  pull()%>%
+  valueBox(icon = "fa-cross", color = "danger")
+```
+
+### Nuevos contagios en el último día
+```{r}
+contagios_dia <- last(positivos_cum$count)
+valueBox(contagios_dia, color = "warning")
+```
+
+### Fallecidos en el último día
+```{r}
+fallecidos_dia <- last(fallecidos_cum$count)
+valueBox(fallecidos_dia, color = "danger")
 ```
 
 Evolución de la pandemia
@@ -120,13 +130,35 @@ Evolución de la pandemia
 diarios(positivos)
 ```
 
-### Evolución de fallecidos
+
+### Evolución de fallecidos en el MINSA
 ```{r}
 diarios(fallecidos)
 ```
 
-Tabla regiones
---------------
+Fila
+----
+
+### Fallecidos en SINADEF
+```{r}
+data.temp <- fallecidos_sinadef %>%
+  group_by(fecha) %>%
+  summarise(count=n()) %>%
+  mutate(año = substr(fecha, 1, 4),
+         mes = substr(fecha, 6, 7),
+         date = as.Date(format(fecha, "1990-%m-%d")),
+         ) 
+
+ggplot(data.temp, aes(x = date, y = count, colour = año)) +
+  geom_line(size = 0.8) +
+  scale_x_date(date_labels = "%b", breaks = "1 month", minor_breaks = "1 week") +
+  scale_color_manual(values = c (rep("darkgray", 3), "red")) +
+  labs (x = "Fecha", y = "Casos") +
+  theme (legend.position = "bottom", legend.title = element_blank())
+```
+
+
+### Data por regiones
 
 ```{r}
 tabla_regiones <- positivos %>%
@@ -151,7 +183,6 @@ datatable(tabla_regiones,
           options = list(pageLength = 26)
           )
 ```
-
 
 Créditos
 --------

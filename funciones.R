@@ -1,9 +1,11 @@
 ###===Funciones===###
 descargar.datos <- function () {
+  message("Descargando bases de datos")
   download.file("https://cloud.minsa.gob.pe/s/Y8w3wHsEdYQSZRp/download", "data/positivos_covid.csv")
   download.file("https://cloud.minsa.gob.pe/s/Md37cjXmjT9qYSa/download", "data/fallecidos_covid.csv")
   download.file("https://cloud.minsa.gob.pe/s/nqF2irNbFomCLaa/download", "data/fallecidos_sinadef.csv")
   download.file("https://covid.ourworldindata.org/data/owid-covid-data.csv", "data/owid-covid-data.csv")
+  message("Bases de datos descargadas")
 }
 
 diarios <- function (x, k = 7) {
@@ -39,4 +41,13 @@ covid.trend <- function () { #esta funcion crea un gráfico inspirado en esta we
     labs (x = "Número de casos", y = "Casos de la semana anterior", title = "Tendencia de Coronavirus")
   
   return(list(tail(data.temp), g.temp))
+}
+
+importar.datos <- function() {
+  message("Importando bases de datos...")
+  .GlobalEnv$positivos <- read.csv("data/positivos_covid.csv")
+  .GlobalEnv$fallecidos <- read.csv("data/fallecidos_covid.csv")
+  .GlobalEnv$fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
+  .GlobalEnv$reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8")
+  message("¡Bases de datos importadas!")
 }
