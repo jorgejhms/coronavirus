@@ -25,6 +25,7 @@ library("viridis") # paleta de colores
 library(lubridate) #manejo de fechas
 library(DT)
 library(broom)
+library(sf)
 
 source("funciones.R") #carga funciones de R
 
@@ -32,7 +33,7 @@ positivos <- read.csv("data/positivos_covid.csv")
 fallecidos <- read.csv("data/fallecidos_covid.csv")
 fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
 reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8")
-mapa <- read_sf(dsn="data/depT/.", layer = "DEPARTAMENTOS")
+mapa <- read_sf(dsn="data/dept/.", layer = "DEPARTAMENTOS")
 
 ## Limpieza de Data
 ## ----------------
@@ -63,6 +64,8 @@ fallecidos_sinadef <- filter(fallecidos_sinadef,
                      `DEPARTAMENTO.DOMICILIO` != "EXTRANJERO",
                      `MUERTE.VIOLENTA` %in% c("SIN REGISTRO","NO SE CONOCE"))
 
+mapa <- mapa %>%
+  rename(DEPARTAMENTO = DEPARTAMEN)
 
 ## Generando acumulados:
 ## ---------------------
@@ -111,7 +114,7 @@ censo_2017 <-tribble(
 
 ```
 
-Página 1
+Inicio
 ========
 
 Cabecera
@@ -119,7 +122,7 @@ Cabecera
 
 ### Presentación
 
-Dashboard con la última información de los datos abiertos del MINSA.
+Dashboard con la última información de los datos abiertos del MINSA. Este dahsboard ha sido creado con el objetivo de servir como herramienta de aprendizaje en el procesamiento y visualización de información. La información presentada debe ser tomada como referencial.
 
 ### Última actualización
 ```{r}
@@ -127,7 +130,7 @@ fecha_actualizacion <- max(date(positivos$fecha))
 valueBox(fecha_actualizacion)
 ```
 
-Contagios
+Contagios 
 ---------
 
 ### Personas contagiadas
@@ -158,25 +161,25 @@ fallecidos_dia <- last(fallecidos_cum$count)
 valueBox(fallecidos_dia, color = "danger")
 ```
 
-Evolución de la pandemia
-------------------------
+Evolución de la pandemia {data-height = 500}
+--------------------------------------------
 
 ### Evolución de positivos
-```{r}
+```{r, fig.width=6, fig.height=4}
 diarios(positivos)
 ```
 
 
 ### Evolución de fallecidos en el MINSA
-```{r}
+```{r, fig.width=6, fig.height=4}
 diarios(fallecidos)
 ```
 
-Fila
-----
+Fila {data-height = 500}
+-----------------------
 
 ### Fallecidos en SINADEF
-```{r}
+```{r, fig.width=6, fig.height=4}
 data.temp <- fallecidos_sinadef %>%
   group_by(fecha) %>%
   summarise(count=n()) %>%
@@ -199,13 +202,12 @@ ggplot(data.temp, aes(x = date, y = count, colour = año)) +
 ```{r}
 
 positivos_sem<-positivos %>%
-  filter(fecha >= today() - days(7)) %>%
+  filter(fecha >= fecha_actualizacion - days(14)) %>%
   select(DEPARTAMENTO) %>%
   group_by(DEPARTAMENTO) %>%
   summarise(count=n()) %>%
-  mutate(tasa = round(count/censo_2017$Poblacion*100000,2))
-
-
+  mutate(tasa = round(count/censo_2017$Poblacion*100000,0)) %>%
+  select(-count)
 
 tabla_regiones <- positivos %>%
   select(DEPARTAMENTO) %>%
@@ -226,7 +228,7 @@ tabla_regiones <-full_join(tabla_regiones, positivos_sem, by="DEPARTAMENTO")
 
 datatable(tabla_regiones,
           class = 'cell-border stripe',
-          colnames = c('Departamento', 'Contagios', '%', 'Fallecidos', '%', "Contagios x 100 mil hab."),
+          colnames = c('Departamento', 'Contagios', '%', 'Fallecidos', '%', "Contagios x 100 mil hab. ultimos 14 días"),
           options = list(pageLength = 13)
           )
 ```
@@ -236,12 +238,44 @@ Créditos
 
 Fuente: [Datos abiertos del MINSA](https://www.minsa.gob.pe/datosabiertos/).
 
-Mapa
-====
+Mapa de riesgo 
+==============
 
-```{r}
-ggplot() +
-    geom_sf() +
-    geom_sf(data = mapa, fill = NA) +
-    coord_sf()
+Explicación {.sidebar} 
+-----------------------
+
+El siguiente mapa muestra el riesgo actual de contagios por coronavirus para cada departamento del país. El mismo se ha creado inspirado en un [semaforo similar creado para la Unión Europea](https://www.dw.com/en/coronavirus-what-the-eus-new-traffic-light-system-means/a-55265476).
+
+Los colores representan los diferentes niveles de riesgo:
+
+* **Nivel Bajo (Verde):** Hasta 25 contagios por cada 100 mil habitantes en los últimos 14 días.
+* **Nivel Medio (Amarillo):** Entre 25 y 150 contagios por cada 100 mil habitantes en los últimos 14 días.
+* **Nivel Alto (Rojo):** Más de 150 contagios por cada 100 mil habitantes en los ultimos 14 días.
+
+**ATENCIÓN**
+
+**LA INFORMACIÓN PRESENTADA ES PARTE DE UN EJERCICIO PERSONAL EN EL ANÁLISIS Y VISUALIZACIÓN DE INFORMACIÓN ESTADÍSTICA. NO SE PUEDE TOMAR COMO RECOMENDACIÓN MÉDICA O INFORMACIÓN OFICIAL.**
+
+
+Mapa de riesgo 
+--------------
+
+### Mapa de riesgo 
+```{r, fig.width=12, fig.height=8}
+
+tabla_mapa <-tabla_regiones %>%
+  select(DEPARTAMENTO,tasa)
+
+tabla_mapa <- full_join(mapa, tabla_mapa, by = "DEPARTAMENTO")
+
+ggplot(tabla_mapa, aes (fill = cut(tasa, c(-Inf, 25, 150, Inf)))) +
+  geom_sf() +
+  scale_fill_manual(name = "Riesgo",
+                    values = c("(-Inf,25]" = "green",
+                               "(25,150]" = "yellow",
+                               "(150, Inf]" = "red"),
+                    labels = c ("(-Inf,25]" = "Bajo", 
+                                "(25,150]" = "Medio", 
+                                "(150, Inf]"= "Alto")) +
+  coord_sf()
 ```
