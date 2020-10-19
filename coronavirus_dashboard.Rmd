@@ -24,6 +24,7 @@ library(RcppRoll)
 library("viridis") # paleta de colores
 library(lubridate) #manejo de fechas
 library(DT)
+library(broom)
 
 source("funciones.R") #carga funciones de R
 
@@ -31,7 +32,7 @@ positivos <- read.csv("data/positivos_covid.csv")
 fallecidos <- read.csv("data/fallecidos_covid.csv")
 fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
 reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8")
-
+mapa <-st_read(data/departamentos/Departamentos.shp)
 
 ## Limpieza de Data
 ## ----------------
@@ -76,7 +77,41 @@ fallecidos_cum <- fallecidos %>%
   summarise(count=n()) %>%
   mutate(fallecidos_cum = cumsum(replace_na(count, 0)))
 
+## Data adicional:
+## ---------------
+
+censo_2017 <-tribble(
+  ~Departamento,~Poblacion,
+  "Amazonas",379384,
+  "Ancash",1083519,
+  "Apurímac",405759,
+  "Arequipa",1382730,
+  "Ayacucho",616176,
+  "Cajamarca",1341012,
+  "Callao",994494,
+  "Cusco",1205527,
+  "Huancavelica",347639,
+  "Huánuco",721047,
+  "Ica",850765,
+  "Junín",1246038,
+  "La Libertad",1778080,
+  "Lambayeque",1197260,
+  "Lima",9485405,
+  "Loreto",883510,
+  "Madre de Dios",141070,
+  "Moquegua",174863,
+  "Pasco",254065,
+  "Piura",1856809,
+  "Puno",1172697,
+  "San Martín",813381,
+  "Tacna",329332,
+  "Tumbes",224863,
+  "Ucayali",496459,
+)
 ```
+
+Página 1
+========
 
 Cabecera
 --------
@@ -188,3 +223,6 @@ Créditos
 --------
 
 Fuente: [Datos abiertos del MINSA](https://www.minsa.gob.pe/datosabiertos/).
+
+Mapa
+====
