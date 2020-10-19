@@ -32,7 +32,7 @@ positivos <- read.csv("data/positivos_covid.csv")
 fallecidos <- read.csv("data/fallecidos_covid.csv")
 fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
 reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8")
-mapa <-st_read(data/departamentos/Departamentos.shp)
+mapa <- read_sf(dsn="data/depT/.", layer = "DEPARTAMENTOS")
 
 ## Limpieza de Data
 ## ----------------
@@ -226,3 +226,10 @@ Fuente: [Datos abiertos del MINSA](https://www.minsa.gob.pe/datosabiertos/).
 
 Mapa
 ====
+
+```{r}
+ggplot() +
+    geom_sf() +
+    geom_sf(data = mapa, fill = NA) + 
+    coord_sf()
+```
