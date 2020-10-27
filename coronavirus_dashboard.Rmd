@@ -29,8 +29,8 @@ library(sf)
 
 source("funciones.R") #carga funciones de R
 
-positivos <- read.csv("data/positivos_covid.csv")
-fallecidos <- read.csv("data/fallecidos_covid.csv")
+positivos <- read.csv("data/positivos_covid.csv", sep =";")
+fallecidos <- read.csv("data/fallecidos_covid.csv", sep =";")
 fallecidos_sinadef <- read.csv("data/fallecidos_sinadef.csv", sep =";", fileEncoding = "latin1", skip = 2) #cambio a read.csv para aplicar separador
 reportes_minsa <- read.csv("data/reportes_minsa.csv", sep =";", fileEncoding = "UTF-8")
 mapa <- read_sf(dsn="data/dept/.", layer = "DEPARTAMENTOS")
