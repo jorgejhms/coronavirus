@@ -145,7 +145,11 @@ Dashboard con la última información de los datos abiertos del MINSA. Este dahs
 
 ### Última actualización
 ```{r}
-fecha_actualizacion <- max(date(positivos$fecha))
+fecha_actualizacion <- positivos %>%
+  filter(!is.na(fecha)) %>%
+  pull(fecha) %>%
+  max()
+#fecha_actualizacion <- max(date(positivos$fecha))
 valueBox(fecha_actualizacion)
 ```
 
