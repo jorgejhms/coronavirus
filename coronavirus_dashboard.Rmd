@@ -131,6 +131,36 @@ censo_2017 <- tribble (
   "Ucayali",496459,
 )
 
+
+departamentos <-
+  c (
+    "AMAZONAS",
+    "ANCASH",
+    "APURIMAC",
+    "AREQUIPA",
+    "AYACUCHO",
+    "CAJAMARCA",
+    "CALLAO",
+    "CUSCO",
+    "HUANCAVELICA",
+    "HUÁNUCO",
+    "ICA",
+    "JUNÍN",
+    "LA LIBERTAD",
+    "LAMBAYEQUE",
+    "LIMA",
+    "LORETO",
+    "MADRE DE DIOS",
+    "MOQUEGUA",
+    "PASCO",
+    "PIURA",
+    "PUNO",
+    "SAN MARTÍN",
+    "TACNA",
+    "TUMBES",
+    "UCAYALI"
+  )
+
 ```
 
 Inicio
@@ -326,4 +356,46 @@ ggplot(tabla_mapa, aes (fill = cut(tasa, c(-Inf, 25, 150, Inf)))) +
     )
   ) +
   coord_sf()
+```
+
+Data por regiones
+=================
+
+Contagios
+---------
+```{r}
+positivos %>%
+  filter(!is.na(fecha)) %>%
+  select(UUID, DEPARTAMENTO, fecha)%>%
+  group_by(fecha, DEPARTAMENTO) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(
+    x = fecha,
+    y = count,
+    colour = DEPARTAMENTO)) +
+    geom_line(data = . %>%
+              group_by(DEPARTAMENTO) %>%
+              mutate(count = rollmean(count, 7, fill = NA)))  # Cálculo de media movil para cada línea
+    #scale_y_log10() +
+    #theme(legend.position = "bottom")
+
+```
+
+```{r}
+positivos %>%
+  filter(!is.na(fecha)) %>%
+  filter(DEPARTAMENTO != "LIMA") %>%
+  select(UUID, DEPARTAMENTO, fecha)%>%
+  group_by(fecha, DEPARTAMENTO) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(
+    x = fecha,
+    y = count,
+    colour = DEPARTAMENTO)) +
+    geom_line(data = . %>%
+              group_by(DEPARTAMENTO) %>%
+              mutate(count = rollmean(count, 7, fill = NA)))  # Cálculo de media movil para cada línea
+    #scale_y_log10() +
+    #theme(legend.position = "bottom")
+
 ```
