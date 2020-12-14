@@ -95,3 +95,17 @@ g_diarios <- ggplot(data.temp, aes(x = fecha, y = value)) +
   labs(x = "Fecha", y = "Número de casos", title = "Coronavirus en Perú")
 
 rm(data.temp) # limpiando tabla temporal
+
+#mapa de regiones
+positivos %>%
+  filter(!is.na(fecha)) %>%
+  select(UUID, DEPARTAMENTO, fecha)%>%
+  group_by(fecha, DEPARTAMENTO) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(
+    x = fecha,
+    y = count,
+    colour = DEPARTAMENTO)) +
+  geom_line(data = . %>%
+              group_by(DEPARTAMENTO) %>%
+              mutate(count = rollmean(count, 7, fill = NA)))  
