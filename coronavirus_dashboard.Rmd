@@ -14,6 +14,9 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+
+Sys.setlocale(category = "LC_ALL", locale ="es_ES.UTF-8") # setea el sistema en espalol
+
 library(flexdashboard)
 library(ggplot2) # graficos
 library(dplyr) # manipulación de data
@@ -268,22 +271,21 @@ Fila {data-height = 500}
 
 ### Fallecidos en SINADEF
 ```{r, fig.width=6, fig.height=4}
-data.temp <-
-  fallecidos_sinadef %>%
+fallecidos_sinadef %>%
+  filter(fecha <= fecha_actualizacion) %>%
   group_by(fecha) %>%
   summarise(count = n()) %>%
   mutate(
     año = substr(fecha, 1, 4),
     mes = substr(fecha, 6, 7),
     date = as.Date(format(fecha, "1990-%m-%d")),
-  )
-
-ggplot(data.temp, aes(x = date, y = count, colour = año)) +
+  ) %>%
+  ggplot(aes(x = date, y = count, colour = año)) +
   geom_line(size = 0.8) +
   scale_x_date(date_labels = "%b",
                breaks = "1 month",
                minor_breaks = "1 week") +
-  scale_color_manual(values = c (rep("darkgray", 3), "red")) +
+  scale_color_manual(values = c (rep("darkgray", 3), "orange", "red")) +
   labs (x = "Fecha", y = "Casos") +
   theme (legend.position = "bottom", legend.title = element_blank())
 ```
