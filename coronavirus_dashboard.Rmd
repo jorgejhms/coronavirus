@@ -41,8 +41,7 @@ sinadef <- read.csv("data/fallecidos_sinadef.csv", sep = ";", fileEncoding = "la
 
 mapa <- read_sf(dsn = "data/dept/.", layer = "DEPARTAMENTOS")
 
-owid_per <- owiddata %>%
-  filter(iso_code == "PER")
+owid_per <- owiddata %>%  filter(iso_code == "PER")
 
 ## Limpieza de Data
 ## ----------------
@@ -53,7 +52,7 @@ minsa_p <- minsa_p %>%
     EDAD_n = as.numeric(EDAD),
     DEPARTAMENTO = recode(DEPARTAMENTO, "LIMA REGION" = "LIMA") #Juntando Lima y Lima pronvincias
   ) %>%
-  filter(!is.na(FECHA_RESULTADO))
+
 
 minsa_f <- minsa_f %>%
   mutate(
@@ -66,7 +65,6 @@ sinadef <- sinadef %>%
   mutate(FECHA = as.Date(FECHA),
          año = year(FECHA)) %>%
   filter(
-    !is.na(FECHA),
     `DEPARTAMENTO.DOMICILIO` != "EXTRANJERO",
     `MUERTE.VIOLENTA` %in% c("SIN REGISTRO", "NO SE CONOCE")
   )
@@ -95,7 +93,7 @@ minsa_db <- full_join(minsa_db, fallecidos_cum, by = "fecha" ) %>%
 rm(fallecidos_cum)
 
 ## Data adicional:
-## ---------------
+
 censo_2017 <- tribble (
   ~Departamento,~Poblacion,
   "Amazonas",379384,
@@ -124,7 +122,6 @@ censo_2017 <- tribble (
   "Tumbes",224863,
   "Ucayali",496459,
 )
-
 
 departamentos <-
   c (
@@ -159,8 +156,8 @@ departamentos <-
 
 g_diario <- function(k, n) {
    ggplot(k, aes(x = fecha, y = n)) +
-      geom_bar(stat = "identity", color = "red", alpha = 0.5) +
-      geom_line(aes(y = rollmean(n, 7, fill = NA)), color = "red4", size = 2) +
+      geom_bar(stat = "identity") +
+      geom_line(aes(y = rollmean(n, 7, fill = NA)), size = 1.2) +
       scale_x_date(date_labels = "%b",
                    breaks = "1 month",
                    minor_breaks = NULL) +
@@ -171,8 +168,6 @@ g_diario <- function(k, n) {
            title = element_blank())
 }
  
-
-
 ```
 
 Inicio
@@ -199,31 +194,25 @@ Contagios
 
 ### Personas contagiadas
 ```{r}
-minsa_p %>%
-  summarise(count = n()) %>%
-  pull() %>%
-  prettyNum(big.mark = ",") %>%
-  valueBox(icon = "fa-user", color = "warning")
+contagios_total <- last(minsa_db$positivos_cum)
+valueBox(prettyNum(contagios_total, big.mark = ","),icon = "fa-user", color = "warning")
 ```
 
 ### Personas fallecidas
 ```{r}
-minsa_f %>%
-  summarise(count = n()) %>%
-  pull() %>%
-  prettyNum(big.mark = ",") %>%
-  valueBox(icon = "fa-cross", color = "danger")
+fallecidos_total <- last(minsa_db$fallecidos_cum)
+valueBox(prettyNum(fallecidos_total, big.mark = ","),icon = "fa-cross", color = "danger")
 ```
 
 ### Nuevos contagios en el último día
 ```{r}
-contagios_dia <- last(minsa_db$positivos_cum)
-valueBox(contagios_dia, color = "warning")
+contagios_dia <- last(minsa_db$positivos)
+valueBox(prettyNum(contagios_dia, big.mark = ","), color = "warning")
 ```
 
 ### Fallecidos en el último día
 ```{r}
-fallecidos_dia <- last (minsa_db$fallecidos_cum)
+fallecidos_dia <- last (minsa_db$fallecidos)
 valueBox(fallecidos_dia, color = "danger")
 ```
 
@@ -238,7 +227,6 @@ g_diario(minsa_db, minsa_db$positivos)
 
 ### Evolución de fallecidos en el MINSA
 ```{r, fig.width=6, fig.height=4}
-
 g_diario(minsa_db, minsa_db$fallecidos)
 ```
 
@@ -371,14 +359,15 @@ Tendencia
 =========
 
 ```{r, fig.width=12, fig.height=8}
-minsa_p %>%
-  select(FECHA_RESULTADO) %>%
-  group_by(FECHA_RESULTADO) %>%
-  summarise(count = n()) %>%
+#minsa_p %>%
+ # select(FECHA_RESULTADO) %>%
+  #group_by(FECHA_RESULTADO) %>%
+  #summarise(count = n()) 
+
+minsa_db %>%
   mutate(
-    sum_sem = roll_sum (count, 7, fill = NA, align = "right"),
+    sum_sem = roll_sum (positivos, 7, fill = NA, align = "right"),
     #Suma los casos de la semana previa, requiere RcppRoll
-    positivos_cum = cumsum(replace_na(count, 0))
   ) %>%
   ggplot(aes(x = positivos_cum, y = sum_sem)) +
   geom_line() +
