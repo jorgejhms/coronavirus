@@ -15,7 +15,7 @@ output:
 
 ```{r setup, include=FALSE}
 
-Sys.setlocale(category = "LC_ALL", locale ="es_ES.UTF-8") # setea el sistema en espalol
+Sys.setlocale(category = "LC_ALL", locale ="es_ES.UTF-8") # setea el sistema en español
 
 library(flexdashboard)
 library(ggplot2) # graficos
@@ -57,7 +57,7 @@ positivos <- positivos %>%
     d = substr(FECHA_RESULTADO, 7, 8),
     fecha = as.Date(paste0(y, "-", m, "-", d)),
     EDAD_n = as.numeric(EDAD),
-    DEPARTAMENTO = recode(DEPARTAMENTO, "LIMA REGION" = "LIMA") #Juntando Lima y Lima pronvincias
+    DEPARTAMENTO = recode(DEPARTAMENTO, "LIMA REGION" = "LIMA") #Juntando Lima y Lima provincias
   ) %>%
   filter(!is.na(fecha))
 
