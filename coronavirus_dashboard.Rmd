@@ -24,11 +24,12 @@ library(zoo) # series de tiempo
 library(readr)
 library(tidyr)
 library(RcppRoll)
-library("viridis") # paleta de colores
+library(viridis) # paleta de colores
 library(lubridate) # manejo de fechas
 library(DT)
 library(broom)
 library(sf)
+library(ggrepel)
 
 source("funciones.R") #carga funciones de R
 
@@ -51,7 +52,7 @@ minsa_p <- minsa_p %>%
     FECHA_RESULTADO = as.Date(as.character(FECHA_RESULTADO), format = "%Y%m%d"),
     EDAD_n = as.numeric(EDAD),
     DEPARTAMENTO = recode(DEPARTAMENTO, "LIMA REGION" = "LIMA") #Juntando Lima y Lima pronvincias
-  ) %>%
+  )
 
 
 minsa_f <- minsa_f %>%
@@ -182,9 +183,8 @@ Dashboard con la última información de los datos abiertos del MINSA. Este dahs
 
 ### Última actualización
 ```{r}
-fecha_actualizacion <- minsa_p %>%
-  pull(FECHA_RESULTADO) %>%
-  max()
+fecha_actualizacion <-
+  minsa_p$FECHA_CORTE %>% last() %>% as.character() %>% as.Date("%Y%m%d")
 
 valueBox(fecha_actualizacion)
 ```
@@ -337,21 +337,19 @@ tabla_mapa <-
 tabla_mapa <-
   full_join(mapa, tabla_mapa, by = "DEPARTAMENTO")
 
-ggplot(tabla_mapa, aes (fill = cut(tasa, c(-Inf, 25, 150, Inf)))) +
+tabla_mapa <- cbind(tabla_mapa, st_coordinates(st_centroid(tabla_mapa))) #Crea posiciones medias X, Y a partir de las figuras de cada departamento
+
+ggplot(tabla_mapa, aes(fill = tasa)) +
   geom_sf() +
-  scale_fill_manual(
-    name = "Riesgo",
-    values = c(
-      "(-Inf,25]" = "green",
-      "(25,150]" = "yellow",
-      "(150, Inf]" = "red"
-    ),
-    labels = c (
-      "(-Inf,25]" = "Bajo",
-      "(25,150]" = "Medio",
-      "(150, Inf]" = "Alto"
-    )
+  scale_fill_gradient2(
+    low = "green",
+    high = "red1",
+    midpoint = 75,
+    mid = "gold",
+    breaks = c(25, 150),
+    limits = c(0, NA)
   ) +
+  geom_label_repel(data = tabla_mapa, aes(X, Y, label = tasa), fill = "white") +
   coord_sf()
 ```
 
