@@ -1,0 +1,15 @@
+base
+flexdashboard
+ggplot2
+dplyr
+zoo
+readr
+tidyr
+RcppRoll
+viridisLite
+viridis
+lubridate
+DT
+broom
+sf
+ggrepel
