@@ -98,17 +98,17 @@ minsa_f_cum <-
 ### Funciones
 
 g_diario <- function(k, n, o) {
-   ggplot(k, aes(x = o, y = n)) +
-      geom_bar(stat = "identity") +
-      geom_line(aes(y = rollmean(n, 7, fill = NA)), size = 1.2) +
-      scale_x_date(date_labels = "%b",
-                   breaks = "1 month",
-                   minor_breaks = NULL) +
-      theme(legend.position = "bottom"
-             , legend.title = element_blank()) +
-      labs(x = element_blank(),
-           y = element_blank(),
-           title = element_blank())
+  ggplot(k, aes(x = o, y = n)) +
+    geom_bar(stat = "identity") +
+    geom_line(aes(y = rollmean(n, 7, fill = NA)), size = 1.2, color = "red1") +
+    scale_x_date(date_labels = "%b",
+                 breaks = "1 month",
+                 minor_breaks = NULL) +
+    theme(legend.position = "bottom"
+          , legend.title = element_blank()) +
+    labs(x = element_blank(),
+         y = element_blank(),
+         title = element_blank())
 }
 
 ## Valores importantes
@@ -140,7 +140,7 @@ positivos_sem <-
   summarise(count = n()) %>%
   bind_cols(censo2017) %>%
   mutate(tasa = round(count / Población * 100000, 0)) %>%
-  select(-count, -Departamento)
+  select(-count,-Departamento)
 
 tabla_regiones <-
   minsa_p %>%
@@ -211,7 +211,7 @@ ggplot(tabla_mapa, aes(fill = tasa)) +
   ) +
   geom_label_repel(data = tabla_mapa, aes(X, Y, label = tasa), fill = "white") +
   coord_sf() +
-  labs (x = element_blank(), y = element_blank(), title=element_blank())
+  labs (x = element_blank(), y = element_blank(), title = element_blank())
 ```
 
 Segunda columna 
@@ -234,9 +234,9 @@ sinadef %>%
   filter(FECHA <= fecha_actualizacion) %>%
   group_by(FECHA) %>%
   summarise(count = n()) %>%
-  mutate (año = substr(FECHA, 1, 4), 
+  mutate (año = substr(FECHA, 1, 4),
           #mantener extracción de datos para convertirlo en discreto
-          date = as.Date(format(FECHA, "1990-%m-%d"))) %>% 
+          date = as.Date(format(FECHA, "1990-%m-%d"))) %>%
   # mapea años en uno mismo
   ggplot(aes(x = date, y = count, colour = año)) +
   geom_line(size = 0.8) +
@@ -244,8 +244,10 @@ sinadef %>%
                breaks = "1 month",
                minor_breaks = "1 week") +
   scale_color_manual(values = c (rep("darkgray", 3), "orange", "red")) +
-  labs (x = "Fecha", y = "Casos") +
-  theme (legend.position = "bottom", legend.title = element_blank())
+  labs (x = element_blank(),
+        y = element_blank()) +
+  theme (legend.position = "bottom",
+         legend.title = element_blank(), )
 ```
 
 Columna cifras
@@ -299,8 +301,8 @@ minsa_p %>%
   group_by(FECHA_RESULTADO, DEPARTAMENTO) %>%
   summarise(positivos = n()) %>%
   
-ggplot (aes(x = FECHA_RESULTADO, y = positivos)) +
-  geom_line(aes(y = rollmean(positivos, 7, fill = NA)))+
+  ggplot (aes(x = FECHA_RESULTADO, y = positivos)) +
+  geom_line(aes(y = rollmean(positivos, 7, fill = NA))) +
   scale_x_date(
     date_labels = "%b",
     breaks = "1 month",
@@ -319,8 +321,8 @@ ggplot (aes(x = FECHA_RESULTADO, y = positivos)) +
   ) +
   labs(x = element_blank(),
        y = element_blank(),
-       title = "Contagios diarios de Coronavirus en Perú") +
-  facet_wrap( ~ DEPARTAMENTO)
+       title = element_blank()) +
+  facet_wrap(~ DEPARTAMENTO)
 ```
 
 ### Fallecidos por región
@@ -332,8 +334,8 @@ minsa_f %>%
   group_by(FECHA_FALLECIMIENTO, DEPARTAMENTO) %>%
   summarise(fallecidos = n()) %>%
   
-ggplot (aes(x = FECHA_FALLECIMIENTO, y = fallecidos)) +
-  geom_line(aes(y = rollmean(fallecidos, 7, fill = NA)))+
+  ggplot (aes(x = FECHA_FALLECIMIENTO, y = fallecidos)) +
+  geom_line(aes(y = rollmean(fallecidos, 7, fill = NA))) +
   scale_x_date(
     date_labels = "%b",
     breaks = "1 month",
@@ -352,8 +354,8 @@ ggplot (aes(x = FECHA_FALLECIMIENTO, y = fallecidos)) +
   ) +
   labs(x = element_blank(),
        y = element_blank(),
-       title = "Fallecidos diarios de Coronavirus en Perú") +
-  facet_wrap( ~ DEPARTAMENTO)
+       title = element_blank()) +
+  facet_wrap(~ DEPARTAMENTO)
 ```
 
 ### Fallecidos SINADEF por región
@@ -361,14 +363,29 @@ ggplot (aes(x = FECHA_FALLECIMIENTO, y = fallecidos)) +
 ```{r, cache=TRUE, fig.height=9, fig.width=16}
 
 sinadef %>%
-  filter(FECHA <= fecha_actualizacion &
-           FECHA >= as.Date("2020-03-01", "%Y-%m-%d")) %>%
+  filter(
+    FECHA <= fecha_actualizacion &
+      FECHA >= as.Date("2020-03-01", "%Y-%m-%d") &
+      DEPARTAMENTO.DOMICILIO != "SIN REGISTRO"
+  ) %>%
   select(FECHA, año, DEPARTAMENTO.DOMICILIO) %>%
   group_by(FECHA, DEPARTAMENTO.DOMICILIO) %>%
-    summarise(count = n()) %>%
-    ggplot(aes(x = FECHA, y = count)) +
-    geom_line(aes(y = rollmean(count, 7, fill = NA))) +
-    scale_x_date() +
-    theme (legend.position = "bottom", legend.title = element_blank()) +
-   facet_wrap(~ DEPARTAMENTO.DOMICILIO, scales = "free")
+  summarise(count = n()) %>%
+  ggplot(aes(x = FECHA, y = count)) +
+  geom_line(aes(y = rollmean(count, 7, fill = NA))) +
+  scale_x_date(
+    date_labels = "%b",
+    breaks = "1 month",
+    minor_breaks = NULL,
+    limits = c(as.Date("2020-02-28", "%Y-%m-%d"), NA)
+  ) +
+  theme (
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    axis.text.x = element_text(angle = 45)
+  ) +
+  labs(x = element_blank(),
+       y = element_blank(),
+       title = element_blank()) +
+  facet_wrap( ~ DEPARTAMENTO.DOMICILIO)
 ```
