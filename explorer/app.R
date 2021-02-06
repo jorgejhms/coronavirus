@@ -5,6 +5,7 @@ library(shiny)
 library(tidyverse)
 library(lubridate)
 
+
 # Data
 
 da_p <- read.csv("../data/positivos_covid.csv", sep = ";") %>%
@@ -121,7 +122,7 @@ server <- function(input, output) {
                        FECHA_RESULTADO <= input$date[2]) %>%
             ggplot(aes(x = FECHA_RESULTADO, y = positivos)) +
             geom_bar(stat = "identity") +
-            geom_line(aes(y = rollmean(positivos, 7, fill = NA)),
+            geom_line(aes(y = zoo::rollmean(positivos, 7, fill = NA)),
                       size = 1.2,
                       colour = "red1") +
             scale_x_date(
@@ -148,7 +149,7 @@ server <- function(input, output) {
                        FECHA_FALLECIMIENTO <= input$date[2]) %>%
             ggplot(aes(x = FECHA_FALLECIMIENTO, y = fallecidos)) +
             geom_bar(stat = "identity") +
-            geom_line(aes(y = rollmean(fallecidos, 7, fill = NA)),
+            geom_line(aes(y = zoo::rollmean(fallecidos, 7, fill = NA)),
                       size = 1.2,
                       colour = "red1") +
             scale_x_date(
