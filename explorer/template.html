@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!-- template.html -->
+<html>
+  <head>
+    {{ headContent() }}
+    {{ bootstrapLib() }}
+  </head>
+  <body>
+    <h1>Coronavirus Explorer</h1>
+    
+    Fecha de actualización: {{fecha_actualizacion}}
+    {{ date }}
+    {{ dep }}
+    
+    <h2>Positivos detectados</h2>
+      {{ p_pos }}
+      
+    <h2>Fallecidos detectados</h2>
+    {{ p_fal}}
+    
+    <h2>Fallecidos SINADEF</h2>
+    {{ p_sinadef}}
+
+  </body>
+</html>
