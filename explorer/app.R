@@ -67,6 +67,15 @@ ui <- htmlTemplate(
         selected = "Todos"
     ),
     
+    dias = sliderInput(
+        inputId = "d",
+        label = "¿Media de cuantos días?",
+        min = 2,
+        max = 7,
+        value = 2,
+        step = 1
+    ),
+    
     # Values
     fecha_actualizacion = textOutput("fecha_actualizacion"),
     
@@ -78,38 +87,40 @@ ui <- htmlTemplate(
 
 # backend
 server <- function(input, output) {
-    
     # Filtros de regiones
     temp_pos <- reactive({
-        if (input$dep != "Todos"){ 
+        if (input$dep != "Todos") {
             da_p <- da_p %>%
                 filter(DEPARTAMENTO == input$dep)
-        } else { 
-            da_p <- da_p 
+        } else {
+            da_p <- da_p
         }
     })
     
     temp_fal <- reactive({
-        if (input$dep != "Todos"){ 
+        if (input$dep != "Todos") {
             da_f <- da_f %>%
                 filter(DEPARTAMENTO == input$dep)
-        } else { 
-            da_f <- da_f 
+        } else {
+            da_f <- da_f
         }
     })
     
     temp_sinadef <- reactive({
-        if (input$dep != "Todos"){ 
+        if (input$dep != "Todos") {
             sinadef <- sinadef %>%
                 filter(DEPARTAMENTO.DOMICILIO == input$dep)
-        } else { 
+        } else {
             sinadef <- sinadef
         }
     })
     
     # Values
     
-    output$fecha_actualizacion <- renderText({as.character(fecha_actualizacion)})
+    output$fecha_actualizacion <-
+        renderText({
+            as.character(fecha_actualizacion)
+        })
     # Gráficos
     
     output$p_pos <- renderPlot({
@@ -122,7 +133,7 @@ server <- function(input, output) {
                        FECHA_RESULTADO <= input$date[2]) %>%
             ggplot(aes(x = FECHA_RESULTADO, y = positivos)) +
             geom_bar(stat = "identity") +
-            geom_line(aes(y = zoo::rollmean(positivos, 7, fill = NA)),
+            geom_line(aes(y = zoo::rollmean(positivos, input$d, fill = NA)),
                       size = 1.2,
                       colour = "red1") +
             scale_x_date(
@@ -149,7 +160,7 @@ server <- function(input, output) {
                        FECHA_FALLECIMIENTO <= input$date[2]) %>%
             ggplot(aes(x = FECHA_FALLECIMIENTO, y = fallecidos)) +
             geom_bar(stat = "identity") +
-            geom_line(aes(y = zoo::rollmean(fallecidos, 7, fill = NA)),
+            geom_line(aes(y = zoo::rollmean(fallecidos, input$d, fill = NA)),
                       size = 1.2,
                       colour = "red1") +
             scale_x_date(
@@ -172,15 +183,20 @@ server <- function(input, output) {
             filter(FECHA >= input$date[1] &
                        FECHA <= input$date[2]) %>%
             ggplot(aes(x = FECHA, y = count)) +
-            geom_line(size = 0.8) +
-            scale_x_date(date_labels = "%b",
-                         breaks = "1 month",
-                         minor_breaks = "1 week") +
+            geom_bar(stat = "identity") +
+            geom_line(aes(y = zoo::rollmean(count, input$d, fill = NA)),
+                      size = 1.2,
+                      colour = "red1") +
+            scale_x_date(
+                date_labels = "%b",
+                breaks = "1 month",
+                minor_breaks = "1 week"
+            ) +
             scale_color_manual(values = c (rep("darkgray", 3), "orange", "red")) +
             labs (x = element_blank(),
                   y = element_blank()) +
             theme (legend.position = "bottom",
-                   legend.title = element_blank(), )
+                   legend.title = element_blank(),)
     })
     
 }
