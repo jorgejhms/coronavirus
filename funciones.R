@@ -1,4 +1,6 @@
-###===Funciones===###
+# Funciones
+
+
 descargar.datos <- 
   function () {
   # Descarga las últimas bases de datos desde sus fuentes.
@@ -20,7 +22,7 @@ descargar.datos <-
     "data/owid-covid-data.csv"
   )
   message("Bases de datos descargadas")
-}
+  }
 
 diarios <-
   function (x, k = 7) {

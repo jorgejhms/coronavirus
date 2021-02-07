@@ -39,7 +39,7 @@ source("../funciones.R") #carga funciones de R
 
 owiddata <- read.csv("../data/owid-covid-data.csv")
 
-minsa_p <- read.csv("../data/positivos_covid.csv", sep = ";") %>%
+minsa_p <- data.table::fread("../data/positivos_covid.csv", sep = ";") %>%  
   mutate(
     FECHA_RESULTADO = as.Date(as.character(FECHA_RESULTADO), format = "%Y%m%d"),
     EDAD_n = as.numeric(EDAD),
@@ -47,7 +47,7 @@ minsa_p <- read.csv("../data/positivos_covid.csv", sep = ";") %>%
     #Junta Lima y Lima pronvincias
   )
 
-minsa_f <- read.csv("../data/fallecidos_covid.csv", sep = ";") %>%
+minsa_f <- data.table::fread("../data/fallecidos_covid.csv", sep = ";") %>%
   mutate(
     FECHA_CORTE = as.Date(as.character(FECHA_CORTE), format = "%Y%m%d"),
     FECHA_FALLECIMIENTO = as.Date(
@@ -57,24 +57,24 @@ minsa_f <- read.csv("../data/fallecidos_covid.csv", sep = ";") %>%
   )
 
 sinadef <-
-  read.csv(
+  data.table::fread(
     "../data/fallecidos_sinadef.csv",
     sep = ";",
-    fileEncoding = "latin1",
+    encoding = "Latin-1",
     skip = 2
   ) %>%
   mutate(FECHA = as.Date(FECHA),
          año = year(FECHA)) %>%
   filter(
-    `DEPARTAMENTO.DOMICILIO` != "EXTRANJERO",
-    `MUERTE.VIOLENTA` %in% c("SIN REGISTRO", "NO SE CONOCE")
+    `DEPARTAMENTO DOMICILIO` != "EXTRANJERO",
+    `MUERTE VIOLENTA` %in% c("SIN REGISTRO", "NO SE CONOCE")
   )
 
 mapa <-
   read_sf(dsn = "../data/dept/.", layer = "DEPARTAMENTOS") %>% 
   rename(DEPARTAMENTO = DEPARTAMEN)
 
-censo2017 <- read.csv("../data/censo2017.csv")
+censo2017 <- data.table::fread("../data/censo2017.csv")
 
 departamentos <- as.character(censo2017$Departamento)
  #Convierte columna en lista de nombre
@@ -172,17 +172,24 @@ Explicación {.sidebar}
 -----------------------
 ### Presentación
 
-El siguiente mapa muestra el riesgo actual de contagios por coronavirus para cada departamento del país. El mismo se ha creado inspirado en un [semaforo similar creado para la Unión Europea](https://www.dw.com/en/coronavirus-what-the-eus-new-traffic-light-system-means/a-55265476).
+El siguiente mapa muestra el riesgo actual de contagios por coronavirus para
+cada departamento del país. El mismo se ha creado inspirado en un [semaforo
+similar creado para la Unión Europea](https://www.dw.com/en/coronavirus-what-the-eus-new-traffic-light-system-means/a-55265476).
 
 Los colores representan los diferentes niveles de riesgo:
 
-* **Nivel Bajo (Verde):** Hasta 25 contagios por cada 100 mil habitantes en los últimos 14 días.
-* **Nivel Medio (Amarillo):** Entre 25 y 150 contagios por cada 100 mil habitantes en los últimos 14 días.
-* **Nivel Alto (Rojo):** Más de 150 contagios por cada 100 mil habitantes en los ultimos 14 días.
+* **Nivel Bajo (Verde):** Hasta 25 contagios por cada 100 mil habitantes en los
+últimos 14 días.
+* **Nivel Medio (Amarillo):** Entre 25 y 150 contagios por cada 100 mil
+habitantes en los últimos 14 días.
+* **Nivel Alto (Rojo):** Más de 150 contagios por cada 100 mil habitantes en los
+ultimos 14 días.
 
 **ATENCIÓN**
 
-**LA INFORMACIÓN PRESENTADA ES PARTE DE UN EJERCICIO PERSONAL EN EL ANÁLISIS Y VISUALIZACIÓN DE INFORMACIÓN ESTADÍSTICA. NO SE PUEDE TOMAR COMO RECOMENDACIÓN MÉDICA O INFORMACIÓN OFICIAL.**
+**LA INFORMACIÓN PRESENTADA ES PARTE DE UN EJERCICIO PERSONAL EN EL ANÁLISIS Y
+VISUALIZACIÓN DE INFORMACIÓN ESTADÍSTICA. NO SE PUEDE TOMAR COMO RECOMENDACIÓN
+MÉDICA O INFORMACIÓN OFICIAL.**
 
 Primera columna
 ---------------
@@ -198,7 +205,8 @@ tabla_mapa <-
 tabla_mapa <-
   full_join(mapa, tabla_mapa, by = "DEPARTAMENTO")
 
-tabla_mapa <- cbind(tabla_mapa, st_coordinates(st_centroid(tabla_mapa))) #Crea posiciones medias X, Y a partir de las figuras de cada departamento
+#Crea posiciones medias X, Y a partir de las figuras de cada departamento
+tabla_mapa <- cbind(tabla_mapa, st_coordinates(st_centroid(tabla_mapa))) 
 
 ggplot(tabla_mapa, aes(fill = tasa)) +
   geom_sf() +
@@ -367,10 +375,10 @@ sinadef %>%
   filter(
     FECHA <= fecha_actualizacion &
       FECHA >= as.Date("2020-03-01", "%Y-%m-%d") &
-      DEPARTAMENTO.DOMICILIO != "SIN REGISTRO"
+      `DEPARTAMENTO DOMICILIO` != "SIN REGISTRO"
   ) %>%
-  select(FECHA, año, DEPARTAMENTO.DOMICILIO) %>%
-  group_by(FECHA, DEPARTAMENTO.DOMICILIO) %>%
+  select(FECHA, año, `DEPARTAMENTO DOMICILIO`) %>%
+  group_by(FECHA, `DEPARTAMENTO DOMICILIO`) %>%
   summarise(count = n()) %>%
   ggplot(aes(x = FECHA, y = count)) +
   geom_line(aes(y = rollmean(count, 7, fill = NA))) +
@@ -388,5 +396,5 @@ sinadef %>%
   labs(x = element_blank(),
        y = element_blank(),
        title = element_blank()) +
-  facet_wrap( ~ DEPARTAMENTO.DOMICILIO)
+  facet_wrap( ~ `DEPARTAMENTO DOMICILIO`)
 ```
