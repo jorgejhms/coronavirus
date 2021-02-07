@@ -78,6 +78,10 @@ ui <- htmlTemplate(
     
     # Values
     fecha_actualizacion = textOutput("fecha_actualizacion"),
+    t_pos = textOutput("t_pos"),
+    t_fal = textOutput("t_fal"),
+    d_pos = textOutput("d_pos"),
+    d_fal = textOutput("d_fal"),
     
     # Plots
     p_pos = plotOutput("p_pos"),
@@ -121,6 +125,38 @@ server <- function(input, output) {
         renderText({
             as.character(fecha_actualizacion)
         })
+    
+    output$t_pos <-
+        renderText({
+            da_p %>% summarise(positivos=n()) %>% pull()
+        })
+    
+    output$t_fal <-
+        renderText({
+            da_f %>% summarise (fallecidos=n()) %>% pull()
+        })
+    
+    output$d_pos <-
+        renderText({
+            da_p %>%
+                select(FECHA_RESULTADO) %>%
+                group_by(FECHA_RESULTADO) %>%
+                summarise(positivos = n()) %>%
+                filter (FECHA_RESULTADO == fecha_actualizacion) %>%
+                pull()
+            
+        })
+    
+    output$d_fal <-
+        renderText({
+            da_f %>%
+                select(FECHA_FALLECIMIENTO) %>%
+                group_by(FECHA_FALLECIMIENTO) %>%
+                summarise(fallecidos = n()) %>%
+                filter (FECHA_FALLECIMIENTO == fecha_actualizacion) %>%
+                pull()
+        })
+    
     # Gráficos
     
     output$p_pos <- renderPlot({

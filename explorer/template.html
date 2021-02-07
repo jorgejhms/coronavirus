@@ -1,26 +1,52 @@
 <!DOCTYPE html>
+<html lang="es">
 <!-- template.html -->
 <html>
   <head>
     {{ headContent() }}
     {{ bootstrapLib() }}
+    <link rel="stylesheet" href="style.css">
   </head>
+  
   <body>
-    <h1>Coronavirus Explorer</h1>
+   
+    <header>
+        
+      <h1 class="logo">Coronavirus Explorer</h1>
+      <ul>
+        <li>Ultima actualización: {{fecha_actualizacion}}</li>
+        <li>Total de contagios: {{t_pos}}</li>
+        <li>Total de fallecidos: {{t_fal}}</li>
+        <li>Nuevos contagios en el último día: {{d_pos}} </li>
+        <li>Nuevos fallecidos en el último día: {{d_fal}}</li>
+      </ul>
+    </header>
+      <main>
+        <sidebar>
+          <div class="contro_box">
+            {{ date }}
+            {{ dep }}
+            {{ dias }}
+          </div>
+        </sidebar>
     
-    Fecha de actualización: {{fecha_actualizacion}}
-    {{ date }}
-    {{ dep }}
-    {{ dias }}
+        <div class="Outputs">
+          <div>
+            <h2>Positivos detectados</h2>
+            {{ p_pos }}
+          </div>
+            
+          <div>
+            <h2>Fallecidos detectados</h2>
+            {{ p_fal}}
+          </div>
     
-    <h2>Positivos detectados</h2>
-      {{ p_pos }}
+          <div>
+            <h2>Fallecidos SINADEF</h2>
+            {{ p_sinadef}}  
+          </div>    
       
-    <h2>Fallecidos detectados</h2>
-    {{ p_fal}}
-    
-    <h2>Fallecidos SINADEF</h2>
-    {{ p_sinadef}}
-
+      </main>
+    </div>
   </body>
 </html>
