@@ -20,11 +20,10 @@ Sys.setlocale(category = "LC_ALL", locale = "es_ES.UTF-8" )
 # setea el sistema en español
 
 library(flexdashboard)
-library(ggplot2) # graficos
-library(dplyr) # manipulación de data
+library(tidyverse)
+library(plotly)
 library(zoo) # series de tiempo
 library(readr)
-library(tidyr)
 library(RcppRoll)
 library(viridis) # paleta de colores
 library(lubridate) # manejo de fechas
@@ -221,6 +220,7 @@ ggplot(tabla_mapa, aes(fill = tasa)) +
   geom_label_repel(data = tabla_mapa, aes(X, Y, label = tasa), fill = "white") +
   coord_sf() +
   labs (x = element_blank(), y = element_blank(), title = element_blank())
+
 ```
 
 Segunda columna 
@@ -228,18 +228,20 @@ Segunda columna
 
 ### Evolución de positivos
 ```{r, fig.height=3, cache=TRUE}
-g_diario(minsa_p_cum, minsa_p_cum$positivos, minsa_p_cum$FECHA_RESULTADO)
+p_positivos <- g_diario(minsa_p_cum, minsa_p_cum$positivos, minsa_p_cum$FECHA_RESULTADO)
+ggplotly(p_positivos)
 ```
 
 ### Evolución de fallecidos en el MINSA
 
 ```{r, fig.height=3, cache=TRUE}
-g_diario(minsa_f_cum, minsa_f_cum$fallecidos, minsa_f_cum$FECHA_FALLECIMIENTO)
+p_fallecidos <- g_diario(minsa_f_cum, minsa_f_cum$fallecidos, minsa_f_cum$FECHA_FALLECIMIENTO)
+ggplotly(p_fallecidos)
 ```
 
 ### Fallecidos en SINADEF
 ```{r, fig.height=3, cache=TRUE}
-sinadef %>%
+p_sinadef <- sinadef %>%
   filter(FECHA <= fecha_actualizacion) %>%
   group_by(FECHA) %>%
   summarise(count = n()) %>%
@@ -257,6 +259,7 @@ sinadef %>%
         y = element_blank()) +
   theme (legend.position = "bottom",
          legend.title = element_blank(), )
+ggplotly(p_sinadef)
 ```
 
 Columna cifras

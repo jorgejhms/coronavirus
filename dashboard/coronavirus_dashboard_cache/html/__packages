@@ -13,3 +13,9 @@ DT
 broom
 sf
 ggrepel
+tidyverse
+tibble
+purrr
+stringr
+forcats
+plotly
