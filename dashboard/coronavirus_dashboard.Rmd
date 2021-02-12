@@ -36,7 +36,8 @@ source("../funciones.R") #carga funciones de R
 
 ## Carga de datos
 
-owiddata <- read.csv("../data/owid-covid-data.csv")
+owid <- read.csv("../data/owid-covid-data.csv")
+owid$date <- as.Date(owid$date, format = "%Y-%m-%d")
 
 minsa_p <- data.table::fread("../data/positivos_covid.csv", sep = ";") %>%  
   mutate(
@@ -78,7 +79,7 @@ censo2017 <- data.table::fread("../data/censo2017.csv")
 departamentos <- as.character(censo2017$Departamento)
  #Convierte columna en lista de nombre
 
-owid_per <- owiddata %>%  filter(iso_code == "PER")
+owid_per <- owid %>%  filter(iso_code == "PER")
 
 ## Generando acumulados ----------------------------
 
@@ -131,6 +132,15 @@ fallecidos_total <- fallecidos_total[1]
 fallecidos_dia <-
   minsa_f_cum$fallecidos[minsa_f_cum$FECHA_FALLECIMIENTO == fecha_actualizacion]
 fallecidos_dia <- fallecidos_dia[1]
+
+vac_dia <- owid_per$new_vaccinations[owid_per$date == fecha_actualizacion]
+vac_dia <- vac_dia[1]
+
+vac_1dosis <- owid_per$people_vaccinated[owid_per$date == fecha_actualizacion]
+vac_1dosis <- vac_1dosis[1]
+
+vac_total <- owid_per$people_fully_vaccinated[owid_per$date == fecha_actualizacion]
+vac_total <- vac_total[1]
 
 positivos_sem <-
   minsa_p %>%
@@ -296,7 +306,23 @@ valueBox(prettyNum(contagios_dia, big.mark = ","), color = "warning")
 valueBox(fallecidos_dia, color = "danger")
 ```
 
+### Vacunaciones en el día
 
+```{r}
+valueBox(vac_dia)
+```
+
+### Total de vacunados con una dosis
+
+```{r}
+valueBox(vac_1dosis)
+```
+
+### Total de vacunados con 2 dosis
+
+```{r}
+valueBox(vac_total)
+```
 
 Regiones
 ========
