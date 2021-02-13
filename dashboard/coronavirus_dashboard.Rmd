@@ -174,8 +174,8 @@ tabla_regiones <-
   full_join(tabla_regiones, positivos_sem, by = "DEPARTAMENTO")
 ```
 
-Inicio
-========
+Mapa
+====
 
 Explicación {.sidebar} 
 -----------------------
@@ -199,6 +199,8 @@ ultimos 14 días.
 **LA INFORMACIÓN PRESENTADA ES PARTE DE UN EJERCICIO PERSONAL EN EL ANÁLISIS Y
 VISUALIZACIÓN DE INFORMACIÓN ESTADÍSTICA. NO SE PUEDE TOMAR COMO RECOMENDACIÓN
 MÉDICA O INFORMACIÓN OFICIAL.**
+
+Las fuentes de los datos de este gráfico son los datos abiertos proporcionados por el [ministerio de salud ](https://www.minsa.gob.pe/datosabiertos/) y la base de datos sobre el COVID-19 de [Our World in Data](https://github.com/owid/covid-19-data/tree/master/public/data).
 
 Primera columna
 ---------------
@@ -233,24 +235,30 @@ ggplot(tabla_mapa, aes(fill = tasa)) +
 
 ```
 
-Segunda columna 
+Evolución de la Pandemia
+========================
+
+Primera columna 
 ---------------
 
 ### Evolución de positivos
-```{r, fig.height=3, cache=TRUE}
+```{r, fig.height=4, cache=TRUE}
 p_positivos <- g_diario(minsa_p_cum, minsa_p_cum$positivos, minsa_p_cum$FECHA_RESULTADO)
 ggplotly(p_positivos)
 ```
 
 ### Evolución de fallecidos en el MINSA
 
-```{r, fig.height=3, cache=TRUE}
+```{r, fig.height=4, cache=TRUE}
 p_fallecidos <- g_diario(minsa_f_cum, minsa_f_cum$fallecidos, minsa_f_cum$FECHA_FALLECIMIENTO)
 ggplotly(p_fallecidos)
 ```
 
+Segunda columna
+---------------
+
 ### Fallecidos en SINADEF
-```{r, fig.height=3, cache=TRUE}
+```{r, fig.height=4, cache=TRUE}
 p_sinadef <- sinadef %>%
   filter(FECHA <= fecha_actualizacion) %>%
   group_by(FECHA) %>%
@@ -270,6 +278,29 @@ p_sinadef <- sinadef %>%
   theme (legend.position = "bottom",
          legend.title = element_blank(), )
 ggplotly(p_sinadef)
+```
+
+### Acumulados vs vacunas
+```{r, fig.height=4, cache=TRUE}
+p_versus <- owid_per %>%
+  filter(date <= fecha_actualizacion) %>%
+  select(date, total_cases, total_deaths, total_vaccinations) %>%
+  rename(Contagios = total_cases,
+         Fallecidos = total_deaths,
+         Vacunados = total_vaccinations) %>%
+  pivot_longer(-date, names_to = "var", values_to = "n") %>%
+  ggplot(aes(x = date, y = n, colour = var)) +
+  geom_line() +
+  scale_color_manual(values = c("blue4", "red1", "green4")) +
+  scale_y_log10(labels = function(x){format(x, scientific = FALSE)}) +
+  scale_x_date(date_labels = "%b",
+               breaks = "1 month",
+               minor_breaks = "1 week") +
+  labs (x = element_blank(),
+        y = element_blank()) +
+  theme (legend.title = element_blank(), )
+ggplotly(p_versus)
+    
 ```
 
 Columna cifras
