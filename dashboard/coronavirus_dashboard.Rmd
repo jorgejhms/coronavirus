@@ -282,14 +282,14 @@ valueBox(fecha_actualizacion)
 
 ### Personas contagiadas
 ```{r}
-valueBox(prettyNum(contagios_total, big.mark = ","),
+valueBox(prettyNum(contagios_total, big.mark = " "),
          icon = "fa-user",
          color = "warning")
 ```
 
 ### Personas fallecidas
 ```{r}
-valueBox(prettyNum(fallecidos_total, big.mark = ","),
+valueBox(prettyNum(fallecidos_total, big.mark = " "),
          icon = "fa-cross",
          color = "danger")
 ```
@@ -297,7 +297,7 @@ valueBox(prettyNum(fallecidos_total, big.mark = ","),
 ### Nuevos contagios en el último día
 
 ```{r}
-valueBox(prettyNum(contagios_dia, big.mark = ","), color = "warning")
+valueBox(prettyNum(contagios_dia, big.mark = " "), color = "warning")
 ```
 
 ### Fallecidos en el último día
@@ -309,19 +309,19 @@ valueBox(fallecidos_dia, color = "danger")
 ### Vacunaciones en el día
 
 ```{r}
-valueBox(vac_dia)
+valueBox(prettyNum(vac_dia, big.mark = " "))
 ```
 
 ### Total de vacunados con una dosis
 
 ```{r}
-valueBox(vac_1dosis)
+valueBox(prettyNum(vac_1dosis, big.mark = " "))
 ```
 
 ### Total de vacunados con 2 dosis
 
 ```{r}
-valueBox(vac_total)
+valueBox(prettyNum(vac_total, big.mark = " "))
 ```
 
 Regiones
