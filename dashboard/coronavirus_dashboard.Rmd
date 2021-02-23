@@ -36,7 +36,7 @@ source("../funciones.R") #carga funciones de R
 
 ## Carga de datos
 
-owid <- read.csv("../data/owid-covid-data.csv")
+owid <- data.table::fread("../data/owid-covid-data.csv")
 owid$date <- as.Date(owid$date, format = "%Y-%m-%d")
 
 minsa_p <- data.table::fread("../data/positivos_covid.csv", sep = ";") %>%  
