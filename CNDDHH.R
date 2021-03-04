@@ -200,7 +200,7 @@ g.sinadef <-
 
 g.region <- tabla_regiones %>%
   select(DEPARTAMENTO, Contagios, Fallecidos) %>%
-  gather(key = "Tipo", value = "casos",-DEPARTAMENTO) %>%
+  gather(key = "Tipo", value = "casos", -DEPARTAMENTO) %>%
   ggplot(aes(
     x = casos,
     y = reorder(DEPARTAMENTO, casos),
@@ -251,8 +251,9 @@ g.contagios.indigenas <- tabla_indígenas %>%
     x = Contagios,
     fill = Departamento
   )) +
+  theme_light() +
   geom_col() +
-  geom_label(aes(label = round(contagios_pct, 2)), fill = "white") +
+  geom_text(aes(label = round(contagios_pct, 2)), fill = "white") +
   labs(x = element_blank(), y = element_blank(), title = element_blank()) +
   theme(legend.position = "none")
 
